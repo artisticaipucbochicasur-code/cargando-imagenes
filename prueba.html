@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Subir video a Cloudinary</title>
+  <title>Subir video</title>
 </head>
 <body>
   <h2>Subir video</h2>
@@ -14,22 +14,21 @@
   <script>
     async function uploadFile() {
       const file = document.getElementById("fileInput").files[0];
-      if (!file) {
-        alert("Selecciona un archivo");
-        return;
-      }
+      if (!file) return alert("Selecciona un archivo");
 
-      const url = "https://api.cloudinary.com/v1_1/dxcn1zpnd/auto/upload";
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "DECOMDH");
-      formData.append("return_delete_token", "true"); // 👈 fuerza que Cloudinary lo devuelva
+      const reader = new FileReader();
+      reader.onloadend = async function () {
+        const base64data = reader.result;
 
-      const res = await fetch(url, { method: "POST", body: formData });
-      const data = await res.json();
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", {
+          method: "POST",
+          body: JSON.stringify({ file: base64data }),
+        });
+        const data = await res.json();
 
-      // mostrar en pantalla
-      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      };
+      reader.readAsDataURL(file);
     }
   </script>
 </body>
