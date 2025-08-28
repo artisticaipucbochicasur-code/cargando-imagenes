@@ -32,9 +32,9 @@
         });
 
         const data = await res.json();
+        console.log(data); // Para debug
 
-        // Construimos la URL final usando tu endpoint
-        const videoUrl = `https://ik.imagekit.io/decomdh/${data.name}`;
+        const videoUrl = data.url; // ✅ Aquí está la URL correcta
 
         document.getElementById("status").innerHTML =
           `✅ Subido: <a href="${videoUrl}" target="_blank">${videoUrl}</a>`;
