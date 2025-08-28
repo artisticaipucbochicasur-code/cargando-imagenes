@@ -2,45 +2,48 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Subir video a ImageKit</title>
+  <title>Subir video a Cloudinary</title>
 </head>
 <body>
-  <h2>Subir Video a ImageKit</h2>
-  <input type="file" id="fileInput" accept="video/*">
+  <h2>Sube tu video a Cloudinary</h2>
+  <input type="file" id="fileInput" accept="video/*" />
   <button onclick="uploadFile()">Subir</button>
   <p id="status"></p>
+  <video id="preview" controls width="400" style="display:none;"></video>
 
   <script>
     async function uploadFile() {
       const file = document.getElementById("fileInput").files[0];
-      if (!file) {
-        alert("Selecciona un video primero");
-        return;
-      }
+      if (!file) return alert("Selecciona un archivo");
+
+      document.getElementById("status").innerText = "⏳ Subiendo...";
+
+      // 🔹 Tus datos de Cloudinary
+      const cloudName = "dxcn1zpnd";   // tu Cloud name
+      const uploadPreset = "DECOMDH";  // tu Upload Preset (unsigned)
+
+      const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("fileName", file.name);
+      formData.append("upload_preset", uploadPreset);
 
       try {
-        const res = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
-          method: "POST",
-          headers: {
-            "Authorization": "Basic cHVibGljX0Z0WnVPRndGcFZ4cjBid09JV3puczNCektRST0="
-          },
-          body: formData
-        });
-
+        const res = await fetch(url, { method: "POST", body: formData });
         const data = await res.json();
-        console.log(data); // Para debug
 
-        const videoUrl = data.url; // ✅ Aquí está la URL correcta
+        if (data.secure_url) {
+          document.getElementById("status").innerHTML = 
+            `✅ Subido! <a href="${data.secure_url}" target="_blank">${data.secure_url}</a>`;
 
-        document.getElementById("status").innerHTML =
-          `✅ Subido: <a href="${videoUrl}" target="_blank">${videoUrl}</a>`;
+          const video = document.getElementById("preview");
+          video.src = data.secure_url;
+          video.style.display = "block";
+        } else {
+          document.getElementById("status").innerText = "❌ Error al subir: " + JSON.stringify(data);
+        }
       } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "❌ Error al subir";
+        document.getElementById("status").innerText = "❌ Error de conexión: " + err;
       }
     }
   </script>
