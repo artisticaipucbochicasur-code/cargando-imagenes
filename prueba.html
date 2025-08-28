@@ -2,26 +2,28 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Subir video a Cloudinary</title>
+  <title>Subir y borrar videos en Cloudinary</title>
 </head>
 <body>
-  <h2>Sube tu video a Cloudinary</h2>
+  <h2>Sube tu video</h2>
   <input type="file" id="fileInput" accept="video/*" />
   <button onclick="uploadFile()">Subir</button>
   <p id="status"></p>
   <video id="preview" controls width="400" style="display:none;"></video>
+  <br>
+  <button id="deleteBtn" style="display:none;" onclick="deleteVideo()">🗑️ Borrar video</button>
 
   <script>
+    let currentDeleteToken = null; // guardamos el token
+
     async function uploadFile() {
       const file = document.getElementById("fileInput").files[0];
       if (!file) return alert("Selecciona un archivo");
 
       document.getElementById("status").innerText = "⏳ Subiendo...";
 
-      // 🔹 Tus datos de Cloudinary
       const cloudName = "dxcn1zpnd";   // tu Cloud name
       const uploadPreset = "DECOMDH";  // tu Upload Preset (unsigned)
-
       const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
 
       const formData = new FormData();
@@ -33,14 +35,55 @@
         const data = await res.json();
 
         if (data.secure_url) {
-          document.getElementById("status").innerHTML = 
-            `✅ Subido! <a href="${data.secure_url}" target="_blank">${data.secure_url}</a>`;
+          const videoUrl = data.secure_url;
+          currentDeleteToken = data.delete_token;
+
+          // Mostrar info
+          document.getElementById("status").innerHTML = `
+            ✅ Subido!<br>
+            🔗 <a href="${videoUrl}" target="_blank">${videoUrl}</a><br>
+            🗑️ Delete Token: <code>${currentDeleteToken}</code>
+          `;
 
           const video = document.getElementById("preview");
-          video.src = data.secure_url;
+          video.src = videoUrl;
           video.style.display = "block";
+
+          document.getElementById("deleteBtn").style.display = "inline-block";
+
+          // Guardar en Google Sheets
+          const scriptURL = "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec";
+          await fetch(scriptURL, {
+            method: "POST",
+            body: JSON.stringify({ url: videoUrl, delete_token: currentDeleteToken })
+          });
         } else {
           document.getElementById("status").innerText = "❌ Error al subir: " + JSON.stringify(data);
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Error: " + err;
+      }
+    }
+
+    async function deleteVideo() {
+      if (!currentDeleteToken) return alert("No hay token de borrado");
+
+      const url = `https://api.cloudinary.com/v1_1/dxcn1zpnd/delete_by_token`;
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: currentDeleteToken })
+        });
+        const data = await res.json();
+
+        if (data.result === "ok") {
+          document.getElementById("status").innerText = "✅ Video borrado correctamente";
+          document.getElementById("preview").style.display = "none";
+          document.getElementById("deleteBtn").style.display = "none";
+        } else {
+          document.getElementById("status").innerText = "❌ Error al borrar: " + JSON.stringify(data);
         }
       } catch (err) {
         document.getElementById("status").innerText = "❌ Error de conexión: " + err;
