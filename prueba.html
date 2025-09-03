@@ -18,44 +18,49 @@
           return;
         }
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true); // reemplaza con la URL de tu WebApp
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var data = e.target.result.split(",")[1]; // solo la parte base64
 
-        // Mostrar barra
-        document.getElementById("progressBar").style.display = "block";
-        document.getElementById("progressBar").value = 0;
-        document.getElementById("percent").innerText = "";
-        document.getElementById("status").innerHTML = "Subiendo...";
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true);
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // Progreso
-        xhr.upload.onprogress = function(e) {
-          if (e.lengthComputable) {
-            var percent = Math.round((e.loaded / e.total) * 100);
-            document.getElementById("progressBar").value = percent;
-            document.getElementById("percent").innerText = percent + "%";
-          }
+          // Mostrar barra
+          document.getElementById("progressBar").style.display = "block";
+          document.getElementById("progressBar").value = 0;
+          document.getElementById("percent").innerText = "";
+          document.getElementById("status").innerHTML = "Subiendo...";
+
+          // Simular progreso (porque base64 se manda de golpe)
+          let percent = 0;
+          let fakeProgress = setInterval(() => {
+            if (percent < 90) {
+              percent += 10;
+              document.getElementById("progressBar").value = percent;
+              document.getElementById("percent").innerText = percent + "%";
+            }
+          }, 200);
+
+          // Respuesta del servidor
+          xhr.onload = function() {
+            clearInterval(fakeProgress);
+            if (xhr.status === 200) {
+              var link = xhr.responseText;
+              document.getElementById("status").innerHTML =
+                "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
+              document.getElementById("progressBar").value = 100;
+              document.getElementById("percent").innerText = "100%";
+            } else {
+              document.getElementById("status").innerHTML = "❌ Error al subir";
+            }
+          };
+
+          xhr.send("file=" + encodeURIComponent(data));
         };
 
-        // Cuando termina
-        xhr.onload = function() {
-          if (xhr.status === 200) {
-            var link = xhr.responseText;
-            document.getElementById("status").innerHTML =
-              "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
-            document.getElementById("progressBar").style.display = "none";
-            document.getElementById("percent").innerText = "";
-          } else {
-            document.getElementById("status").innerHTML = "❌ Error al subir";
-          }
-        };
-
-        // Enviar archivo binario
-        var form = new FormData();
-        form.append("file", file);
-        xhr.send(form);  // 👈 no "file", sino "form"
-
+        reader.readAsDataURL(file);
       }
     </script>
   </body>
 </html>
-
