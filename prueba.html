@@ -609,10 +609,11 @@
         background: transparent;
     }
 
-  /* Oculta el modal por defecto */
+/* Oculta el modal por defecto */
 .hidden {
   display: none !important;
 }
+
 /* Fondo oscuro al abrir modal */
 #search-modal {
   position: fixed;
@@ -678,7 +679,6 @@
   cursor: pointer;
 }
 
-
         
     </style>
 </head>
@@ -695,8 +695,6 @@
     </div>
   </div>
 </div>
-
-
 
 
     
@@ -786,9 +784,6 @@ let activeComment = null;
 let startX = 0;
 let isSwiping = false;
 
-   
-
-
 document.addEventListener("DOMContentLoaded", async () => {
   const commentsOverlay = document.getElementById("commentsOverlay");
   const commentsCounter = document.getElementById("commentsCounter");
@@ -814,86 +809,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     commentsCounter.classList.remove("hidden-overlay");
     commentInputContainer.classList.remove("hidden-overlay");
 
-    // 🔹 Renderizamos los comentarios del primer video
+    // 🔹 Renderizamos los comentarios del primer video para la visualización inicial
     if (videos.length > 0) {
       const primerVideoId = getActiveVideoId() || videos[0].id;
       renderComentarios(primerVideoId);
     }
 
     console.log("✅ Todos los comentarios precargados, interfaz visible.");
+
   } catch (e) {
     console.error("❌ Error al inicializar:", e);
+    // En caso de error, mostramos la interfaz de todas formas
     commentsOverlay.classList.remove("hidden-overlay");
     commentsCounter.classList.remove("hidden-overlay");
     commentInputContainer.classList.remove("hidden-overlay");
   }
-
-  // ⬇️⬇️ Buscador integrado (App Inventor + modal emergente) ⬇️⬇️
-
-  const searchModal = document.getElementById("search-modal");
-  const searchInput = document.getElementById("search-input");
-  const searchResults = document.getElementById("search-results");
-  const searchClose = document.getElementById("search-close");
-
-  function openSearchModal() {
-    searchModal.classList.remove("hidden");
-    searchInput.value = "";
-    searchResults.innerHTML = "";
-    searchInput.focus();
-  }
-
-  function closeSearchModal() {
-    searchModal.classList.add("hidden");
-  }
-
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-    searchResults.innerHTML = "";
-
-    if (!query) return;
-
-    const matches = lastVideos.filter(v => v.title.toLowerCase().includes(query));
-
-    if (matches.length === 0) {
-      searchResults.innerHTML = "<li style='padding:6px; color:#aaa;'>Sin resultados</li>";
-    } else {
-      matches.forEach(video => {
-        const li = document.createElement("li");
-        li.textContent = video.title;
-        li.style.padding = "6px";
-        li.style.cursor = "pointer";
-        li.onmouseover = () => (li.style.background = "#333");
-        li.onmouseout = () => (li.style.background = "transparent");
-        li.onclick = () => {
-          const index = lastVideos.findIndex(v => v.id === video.id);
-          if (index !== -1 && swiper) {
-            swiper.slideToLoop(index, 0);
-          }
-          closeSearchModal();
-        };
-        searchResults.appendChild(li);
-      });
-    }
-  });
-
-  searchClose.onclick = closeSearchModal;
-
-  // 🔗 Integración con App Inventor (muestra buscador cuando recibe "buscar")
-  setInterval(() => {
-    try {
-      if (typeof window.AppInventor !== "undefined") {
-        const msg = AppInventor.getWebViewString();
-        if (msg === "buscar") {
-          openSearchModal();
-          AppInventor.setWebViewString(""); // reset
-        }
-      }
-    } catch (e) {
-      console.warn("Error leyendo WebViewString:", e);
-    }
-  }, 500);
 });
-
 
 
 
@@ -2084,5 +2015,4 @@ setInterval(() => {
     </script>
 </body>
 </html>
-
 
