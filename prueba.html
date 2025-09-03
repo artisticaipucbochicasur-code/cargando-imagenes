@@ -6,7 +6,6 @@
     <button onclick="uploadFile()">Subir</button>
     <br><br>
     
-    <!-- Barra de progreso -->
     <progress id="progressBar" value="0" max="100" style="width:300px; display:none;"></progress>
     <span id="percent"></span>
     <p id="status"></p>
@@ -19,47 +18,41 @@
           return;
         }
 
-        var reader = new FileReader();
-        reader.onloadend = function(e) {
-          var data = e.target.result.split(",")[1]; // base64
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true); // reemplaza con la URL de tu WebApp
 
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true);
-          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        // Mostrar barra
+        document.getElementById("progressBar").style.display = "block";
+        document.getElementById("progressBar").value = 0;
+        document.getElementById("percent").innerText = "";
+        document.getElementById("status").innerHTML = "Subiendo...";
 
-          // Mostrar barra
-          document.getElementById("progressBar").style.display = "block";
-          document.getElementById("progressBar").value = 0;
-          document.getElementById("percent").innerText = "";
-          document.getElementById("status").innerHTML = "Subiendo...";
-
-          // Progreso de subida
-          xhr.upload.onprogress = function(e) {
-            if (e.lengthComputable) {
-              var percent = Math.round((e.loaded / e.total) * 100);
-              document.getElementById("progressBar").value = percent;
-              document.getElementById("percent").innerText = percent + "%";
-            }
-          };
-
-          // Cuando termina
-          xhr.onload = function() {
-            if (xhr.status === 200) {
-              var link = xhr.responseText;
-              document.getElementById("status").innerHTML =
-                "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
-              document.getElementById("progressBar").style.display = "none";
-              document.getElementById("percent").innerText = "";
-            } else {
-              document.getElementById("status").innerHTML = "❌ Error al subir";
-            }
-          };
-
-          // Enviar base64 como parámetro
-          xhr.send("file=" + encodeURIComponent(data));
+        // Progreso
+        xhr.upload.onprogress = function(e) {
+          if (e.lengthComputable) {
+            var percent = Math.round((e.loaded / e.total) * 100);
+            document.getElementById("progressBar").value = percent;
+            document.getElementById("percent").innerText = percent + "%";
+          }
         };
 
-        reader.readAsDataURL(file);
+        // Cuando termina
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            var link = xhr.responseText;
+            document.getElementById("status").innerHTML =
+              "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
+            document.getElementById("progressBar").style.display = "none";
+            document.getElementById("percent").innerText = "";
+          } else {
+            document.getElementById("status").innerHTML = "❌ Error al subir";
+          }
+        };
+
+        // Enviar archivo binario
+        var form = new FormData();
+        form.append("file", file);
+        xhr.send(file);
       }
     </script>
   </body>
