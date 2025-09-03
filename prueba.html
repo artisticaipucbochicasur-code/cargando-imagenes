@@ -52,8 +52,10 @@
         // Enviar archivo binario
         var form = new FormData();
         form.append("file", file);
-        xhr.send(file);
+        xhr.send(form);  // 👈 no "file", sino "form"
+
       }
     </script>
   </body>
 </html>
+
