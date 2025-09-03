@@ -624,22 +624,18 @@
 </head>
 <body>
 
-<!-- 🔍 Modal de Búsqueda -->
-<div id="search-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
-  <div class="bg-gray-900 text-white rounded-lg shadow-lg w-11/12 max-w-md p-4">
-    <h3 class="text-lg font-bold mb-2">Buscar videos</h3>
-    <input 
-      type="text" 
-      id="search-input" 
-      placeholder="Escribe un título..." 
-      class="w-full p-2 mb-3 rounded bg-gray-800 text-white border border-gray-700"
-    />
-    <ul id="search-results" class="max-h-48 overflow-y-auto text-sm"></ul>
-    <div class="flex justify-end mt-3">
-      <button id="search-close" class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600">Cerrar</button>
+<!-- 🔍 Modal de búsqueda -->
+<div id="search-modal" class="modal hidden">
+  <div class="modal-content" style="background:#111; color:#fff;">
+    <h3 style="margin:0; font-size:18px;">Buscar video</h3>
+    <input type="text" id="search-input" placeholder="Escribe el título..." style="background:#222; border:1px solid #444; color:white; border-radius:5px;">
+    <ul id="search-results" style="max-height:150px; overflow-y:auto; list-style:none; padding:0; margin:0;"></ul>
+    <div class="modal-actions">
+      <button id="search-close" style="background:#444; color:white; border:none; padding:6px 10px; border-radius:5px;">Cerrar</button>
     </div>
   </div>
 </div>
+
 
 
     
@@ -729,54 +725,7 @@ let activeComment = null;
 let startX = 0;
 let isSwiping = false;
 
-      // --- Modal de búsqueda ---
-const searchModal = document.getElementById("search-modal");
-const searchInput = document.getElementById("search-input");
-const searchResults = document.getElementById("search-results");
-const searchClose = document.getElementById("search-close");
-
-// Función para abrir el modal
-function openSearchModal() {
-  searchModal.classList.remove("hidden");
-  searchInput.value = "";
-  searchResults.innerHTML = "";
-  searchInput.focus();
-}
-
-// Función para cerrar el modal
-function closeSearchModal() {
-  searchModal.classList.add("hidden");
-}
-
-// Escuchar escritura en el input
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.toLowerCase().trim();
-  searchResults.innerHTML = "";
-
-  if (!query) return;
-
-  const matches = lastVideos.filter(v => v.title.toLowerCase().includes(query));
-
-  if (matches.length === 0) {
-    searchResults.innerHTML = "<li class='text-gray-400 px-2 py-1'>Sin resultados</li>";
-  } else {
-    matches.forEach(video => {
-      const li = document.createElement("li");
-      li.textContent = video.title;
-      li.onclick = () => {
-        const index = lastVideos.findIndex(v => v.id === video.id);
-        if (index !== -1 && swiper) {
-          swiper.slideToLoop(index, 0);
-        }
-        closeSearchModal();
-      };
-      searchResults.appendChild(li);
-    });
-  }
-});
-
-// Cerrar modal al dar clic en botón
-searchClose.onclick = closeSearchModal;
+   
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -818,7 +767,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     commentInputContainer.classList.remove("hidden-overlay");
   }
 
-  // ⬇️⬇️ Aquí agregas la lógica del buscador y WebViewString ⬇️⬇️
+  // ⬇️⬇️ Buscador integrado (App Inventor + modal emergente) ⬇️⬇️
 
   const searchModal = document.getElementById("search-modal");
   const searchInput = document.getElementById("search-input");
@@ -845,11 +794,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const matches = lastVideos.filter(v => v.title.toLowerCase().includes(query));
 
     if (matches.length === 0) {
-      searchResults.innerHTML = "<li class='text-gray-400 px-2 py-1'>Sin resultados</li>";
+      searchResults.innerHTML = "<li style='padding:6px; color:#aaa;'>Sin resultados</li>";
     } else {
       matches.forEach(video => {
         const li = document.createElement("li");
         li.textContent = video.title;
+        li.style.padding = "6px";
+        li.style.cursor = "pointer";
+        li.onmouseover = () => (li.style.background = "#333");
+        li.onmouseout = () => (li.style.background = "transparent");
         li.onclick = () => {
           const index = lastVideos.findIndex(v => v.id === video.id);
           if (index !== -1 && swiper) {
@@ -864,7 +817,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   searchClose.onclick = closeSearchModal;
 
-  // 🔗 Integración con App Inventor
+  // 🔗 Integración con App Inventor (muestra buscador cuando recibe "buscar")
   setInterval(() => {
     try {
       if (typeof window.AppInventor !== "undefined") {
@@ -878,7 +831,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("Error leyendo WebViewString:", e);
     }
   }, 500);
-
 });
 
 
@@ -2071,3 +2023,4 @@ setInterval(() => {
     </script>
 </body>
 </html>
+
