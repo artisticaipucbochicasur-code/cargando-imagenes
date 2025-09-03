@@ -4,27 +4,58 @@
     <h2>Subir Video</h2>
     <input type="file" id="fileInput" />
     <button onclick="uploadFile()">Subir</button>
+    <br><br>
+    
+    <!-- Barra de progreso -->
+    <progress id="progressBar" value="0" max="100" style="width:300px; display:none;"></progress>
     <p id="status"></p>
 
     <script>
       function uploadFile() {
         var file = document.getElementById("fileInput").files[0];
+        if (!file) {
+          alert("Selecciona un archivo primero");
+          return;
+        }
+
         var reader = new FileReader();
         reader.onloadend = function(e) {
           var data = e.target.result.split(",")[1]; // base64
+
           var form = new FormData();
           form.append("file", data);
 
-          fetch("https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", { // 👈 pega la URL del web app desplegado
-            method: "POST",
-            body: form,
-          })
-          .then((res) => res.text())
-          .then((link) => {
-            document.getElementById("status").innerHTML =
-              "Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
-          });
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true);
+
+          // Mostrar barra
+          document.getElementById("progressBar").style.display = "block";
+          document.getElementById("progressBar").value = 0;
+          document.getElementById("status").innerHTML = "Subiendo...";
+
+          // Progreso de subida
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              var percent = (e.loaded / e.total) * 100;
+              document.getElementById("progressBar").value = percent;
+            }
+          };
+
+          // Cuando termina
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              var link = xhr.responseText;
+              document.getElementById("status").innerHTML =
+                "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
+              document.getElementById("progressBar").style.display = "none";
+            } else {
+              document.getElementById("status").innerHTML = "❌ Error al subir";
+            }
+          };
+
+          xhr.send(form);
         };
+
         reader.readAsDataURL(file);
       }
     </script>
