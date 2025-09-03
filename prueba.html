@@ -8,6 +8,7 @@
     
     <!-- Barra de progreso -->
     <progress id="progressBar" value="0" max="100" style="width:300px; display:none;"></progress>
+    <span id="percent"></span>
     <p id="status"></p>
 
     <script>
@@ -22,22 +23,22 @@
         reader.onloadend = function(e) {
           var data = e.target.result.split(",")[1]; // base64
 
-          var form = new FormData();
-          form.append("file", data);
-
           var xhr = new XMLHttpRequest();
           xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true);
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
           // Mostrar barra
           document.getElementById("progressBar").style.display = "block";
           document.getElementById("progressBar").value = 0;
+          document.getElementById("percent").innerText = "";
           document.getElementById("status").innerHTML = "Subiendo...";
 
           // Progreso de subida
           xhr.upload.onprogress = function(e) {
             if (e.lengthComputable) {
-              var percent = (e.loaded / e.total) * 100;
+              var percent = Math.round((e.loaded / e.total) * 100);
               document.getElementById("progressBar").value = percent;
+              document.getElementById("percent").innerText = percent + "%";
             }
           };
 
@@ -48,12 +49,14 @@
               document.getElementById("status").innerHTML =
                 "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
               document.getElementById("progressBar").style.display = "none";
+              document.getElementById("percent").innerText = "";
             } else {
               document.getElementById("status").innerHTML = "❌ Error al subir";
             }
           };
 
-          xhr.send(form);
+          // Enviar base64 como parámetro
+          xhr.send("file=" + encodeURIComponent(data));
         };
 
         reader.readAsDataURL(file);
