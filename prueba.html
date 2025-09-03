@@ -1,66 +1,2073 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <h2>Subir Video</h2>
-    <input type="file" id="fileInput" />
-    <button onclick="uploadFile()">Subir</button>
-    <br><br>
-    
-    <progress id="progressBar" value="0" max="100" style="width:300px; display:none;"></progress>
-    <span id="percent"></span>
-    <p id="status"></p>
-
-    <script>
-      function uploadFile() {
-        var file = document.getElementById("fileInput").files[0];
-        if (!file) {
-          alert("Selecciona un archivo primero");
-          return;
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>Galería de Videos</title>
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg1: #000;
+            --bg2: #000;
+            --text: #fff;
+            --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
         }
 
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          var data = e.target.result.split(",")[1]; // solo la parte base64
+        html, body {
+            height: 100%;
+        }
 
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", "https://script.google.com/macros/s/AKfycbx-7auZhhHCyk60eJuk3-nNESCeLAqtl2VIGE-rNUMk4L_w3BIbY15-JmA3SlA0UCgehw/exec", true);
-          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg1), var(--bg2));
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
 
-          // Mostrar barra
-          document.getElementById("progressBar").style.display = "block";
-          document.getElementById("progressBar").value = 0;
-          document.getElementById("percent").innerText = "";
-          document.getElementById("status").innerHTML = "Subiendo...";
+   /* Botones flotantes */
+.floating-buttons {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 2000;
+}
+.fab {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+.fab.danger {}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+.modal-actions button {
+    flex: 1;
+}
 
-          // Simular progreso (porque base64 se manda de golpe)
-          let percent = 0;
-          let fakeProgress = setInterval(() => {
-            if (percent < 90) {
-              percent += 10;
-              document.getElementById("progressBar").value = percent;
-              document.getElementById("percent").innerText = percent + "%";
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+}
+.modal.hidden { display: none; }
+.modal-content {
+    background: #111;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: #fff;
+}
+.modal-content input { padding: 6px; }
+
+/* Progreso flotante */
+.progress-toast {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    z-index: 4000;
+    width: 200px;
+}
+.progress-toast.hidden { display: none; }
+.progress-toast .bar {
+    height: 4px;
+    background: #28a745;
+    width: 0%;
+    margin-bottom: 6px;
+    transition: width 0.3s ease;
+}
+
+.swiper {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+.swiper-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    position: relative;
+    background: #000;
+}
+
+.player-card {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 120px);
+    background: #000;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    border-radius: 10px;
+}
+
+.poster {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    background-size: cover;
+    background-position: center center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.play-btn {
+    display: grid;
+    place-items: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    font-size: 28px;
+    line-height: 1;
+    border: 2px solid #fff;
+}
+
+.player-iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+}
+
+/* Truncamiento para el contenedor del título y la descripción */
+#video-title-fixed .text-container {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* Truncar a 2 líneas por defecto */
+    transition: -webkit-line-clamp 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    max-height: 4em;
+    line-height: 1.2;
+}
+
+#video-title-fixed .text-container.expanded {
+    -webkit-line-clamp: unset;
+    cursor: pointer;
+    overflow-y: auto;
+    max-height: 60vh;
+    padding-right: 15px;
+}
+
+/* Estilo para el botón de 'más' o 'menos' */
+#video-title-fixed .toggle-text {
+    color: #ccc;
+    font-size: 12px;
+    font-weight: bold;
+    user-select: none;
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 5px;
+    border-radius: 3px;
+    backdrop-filter: blur(2px);
+}
+
+#video-title-fixed {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: auto;
+    max-width: 80%;
+    z-index: 1000;
+    background: rgba(0,0,0,0.3);
+    transition: opacity 0.18s ease;
+    opacity: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 10px;
+    margin: 0;
+    right: auto;
+}
+
+#video-title-fixed .video-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: left;
+    color: #f1f1f1;
+}
+
+#video-title-fixed .video-desc {
+    font-size: 14px;
+    opacity: 0.85;
+    text-align: left;
+    color: #ddd;
+}
+
+/* 🔔 Notificaciones */
+#notification-wrapper {
+    position: fixed;
+    right: 20px;
+    bottom: 200px;
+    z-index: 5000;
+}
+
+#notification-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+#notification-count {
+    display: none;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: red;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 50%;
+}
+
+#notification-list {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 10px;
+    width: 260px;
+    max-height: 320px;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+#notification-list.hidden { display: none; }
+#notification-list div {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    color: #ddd;
+}
+#notification-list div:hover {
+    background: #333;
+}
+
+#loader {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    z-index: 10;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+#loader .spinner {
+    display: inline-block;
+    animation: spin 1.1s linear infinite;
+}
+
+.touch-blocker {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: none;
+}
+
+.controls-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 5;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+.player-card:hover .controls-bar {
+    opacity: 1;
+}
+
+.center-play-pause-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    border: 2px solid #fff;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 6;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+.player-card:hover .center-play-pause-btn {
+    opacity: 1;
+}
+
+.play-pause-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.progress-bar {
+    flex-grow: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+.progress {
+    height: 100%;
+    width: 0%;
+    background: #ff0000;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.volume-control input[type="range"] {
+    width: 60px;
+    -webkit-appearance: none;
+    background: transparent;
+}
+.volume-control input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 1.5px;
+}
+.volume-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #fff;
+    margin-top: -4.5px;
+}
+.volume-icon {
+    font-size: 20px;
+}
+
+.time {
+    font-size: 12px;
+    color: #fff;
+}
+
+  /* Contenedor de comentarios (reducido por defecto) */
+   .comments-overlay-container {
+    position: fixed;
+    bottom: 60px;
+    left: 10px;
+    width: calc(80% - 20px);
+    background: rgba(0, 0, 0, 0.6);
+    color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    z-index: 998;
+    overflow-y: auto;
+    transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease;
+    max-height: 4em;
+
+        white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+
+    /* Estado expandido del contenedor de comentarios */
+    .comments-overlay-container.expanded {
+      max-height: 75vh;
+    }
+
+    /* Estilos para la lista de comentarios */
+    .comments-overlay-container ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Estilos para cada comentario individual */
+    .comments-overlay-container li {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 8px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .comments-overlay-container li:last-child {
+      border-bottom: none;
+    }
+    
+    /* Estilo para los comentarios que se pueden borrar */
+    .comments-overlay-container li.deletable {
+        cursor: pointer;
+    }
+    
+    /* Contenedor del botón de borrado */
+    .delete-btn-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #e74c3c;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 0; 
+    }
+    
+    /* Botón de borrado en sí mismo */
+    .delete-btn {
+        color: white;
+        font-weight: bold;
+        padding: 10px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    /* El comentario se desliza */
+    .comment-content {
+      width: 100%;
+      padding-left: 10px;
+      padding-right: 10px;
+      box-sizing: border-box;
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .comment-content.swiped {
+      transform: translateX(100px);
+    }
+    
+    .delete-btn-container.visible {
+        transform: translateX(0);
+    }
+    
+    /* Clase para ocultar los overlays */
+.hidden-overlay {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s;
+}
+
+
+
+    /* Estilos del nuevo contador de comentarios */
+ .comments-counter {
+    position: fixed;
+    bottom: 135px;
+    right: 10px;
+    background: transparent;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 60px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+     box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+    
+    .comments-counter .icon {
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+    
+    .comments-counter .count {
+        font-size: 0.9rem;
+    }
+
+    /* Nuevo: Estilos para la barra de entrada de comentarios */
+ .comment-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+
+  .comment-input-container input {
+    flex-grow: 1;
+    background: transparent;
+    border: 1px solid #555;
+    border-radius: 25px; /* más redondeado */
+    padding: 12px 20px;  /* 🔥 más alto y largo */
+    color: white;
+    font-size: 1rem;
+    outline: none;
+}
+
+
+    .comment-input-container .send-comment-btn {
+        background: transparent;
+        color: white;
+        border: none;
+        padding: 12px 17px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.8rem;
+    }
+    
+    .comment-input-container .send-comment-btn:hover {
+        background: transparent;
+    }
+
+      #search-results li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+}
+#search-results li:hover {
+  background: #444;
+}
+
+
+        
+    </style>
+</head>
+<body>
+
+<!-- 🔍 Modal de Búsqueda -->
+<div id="search-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+  <div class="bg-gray-900 text-white rounded-lg shadow-lg w-11/12 max-w-md p-4">
+    <h3 class="text-lg font-bold mb-2">Buscar videos</h3>
+    <input 
+      type="text" 
+      id="search-input" 
+      placeholder="Escribe un título..." 
+      class="w-full p-2 mb-3 rounded bg-gray-800 text-white border border-gray-700"
+    />
+    <ul id="search-results" class="max-h-48 overflow-y-auto text-sm"></ul>
+    <div class="flex justify-end mt-3">
+      <button id="search-close" class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+    
+<div class="comments-overlay-container hidden-overlay" id="commentsOverlay">
+  <ul id="commentsList"></ul>
+</div>
+<div class="comments-counter hidden-overlay" id="commentsCounter">
+  <span class="icon">💬</span>
+  <span class="count" id="commentCountValue">0</span>
+</div>
+<div class="comment-input-container hidden-overlay">
+  <input type="text" id="commentInput" placeholder="Escribe un comentario...">
+  <button class="send-comment-btn"><i class="fas fa-paper-plane"></i></button>
+</div>
+
+    
+<!-- Notificaciones -->
+<div id="notification-wrapper">
+  <button id="notification-btn">
+    <i class="fas fa-bell"></i>
+    <span id="notification-count"></span>
+  </button>
+  <div id="notification-list" class="hidden"></div>
+</div>
+
+    
+<div id="custom-alert-modal" class="modal hidden">
+  <div class="modal-content">
+    <h3>¡Atención!</h3>
+    <p id="custom-alert-message"></p>
+    <div class="modal-actions">
+      <button id="custom-alert-ok" style="background:#007bff; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Aceptar</button>
+    </div>
+  </div>
+</div>
+<!-- Modal de eliminación -->
+<div id="delete-modal" class="modal hidden">
+  <div class="modal-content">
+    <h3>¿Eliminar Video?</h3>
+    <p id="delete-video-title">¿Seguro que deseas eliminar este video?</p>
+    <div class="modal-actions">
+      <button id="delete-confirm" style="background:#dc3545; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Eliminar</button>
+      <button id="delete-cancel" style="background:#444; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+    
+        <!-- BOTONES flotantes -->
+   <div class="floating-buttons">
+  <button id="btn-delete" class="fab danger"><i class="fas fa-trash"></i></button>
+</div>
+
+  
+
+  <div class="swiper">
+  <div id="video-title-fixed">
+    <div class="video-title"></div>
+    <div class="video-desc"></div>
+  </div>
+  <div class="swiper-wrapper" id="slides"></div>
+</div>
+
+
+    <div id="loader"><span class="spinner">⏳</span></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const SCRIPT_URL =
+            "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
+
+// === Comentarios móviles ===
+const commentsOverlay = document.getElementById('commentsOverlay');
+const commentsCounter = document.getElementById('commentsCounter');
+const commentCountValue = document.getElementById('commentCountValue');
+const commentsList = document.getElementById('commentsList');
+const commentInputContainer = document.querySelector('.comment-input-container');
+const commentInput = document.getElementById('commentInput');
+const sendCommentBtn = document.querySelector('.send-comment-btn');
+const notificationWrapper = document.getElementById('notification-wrapper');
+const notificationList = document.getElementById('notification-list');
+
+let comentariosPorVideo = {}; // videoId: [ {autor, correo, fecha, comentario} ]
+let lastTapTime = 0;
+let activeComment = null;
+let startX = 0;
+let isSwiping = false;
+
+      // --- Modal de búsqueda ---
+const searchModal = document.getElementById("search-modal");
+const searchInput = document.getElementById("search-input");
+const searchResults = document.getElementById("search-results");
+const searchClose = document.getElementById("search-close");
+
+// Función para abrir el modal
+function openSearchModal() {
+  searchModal.classList.remove("hidden");
+  searchInput.value = "";
+  searchResults.innerHTML = "";
+  searchInput.focus();
+}
+
+// Función para cerrar el modal
+function closeSearchModal() {
+  searchModal.classList.add("hidden");
+}
+
+// Escuchar escritura en el input
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = "";
+
+  if (!query) return;
+
+  const matches = lastVideos.filter(v => v.title.toLowerCase().includes(query));
+
+  if (matches.length === 0) {
+    searchResults.innerHTML = "<li class='text-gray-400 px-2 py-1'>Sin resultados</li>";
+  } else {
+    matches.forEach(video => {
+      const li = document.createElement("li");
+      li.textContent = video.title;
+      li.onclick = () => {
+        const index = lastVideos.findIndex(v => v.id === video.id);
+        if (index !== -1 && swiper) {
+          swiper.slideToLoop(index, 0);
+        }
+        closeSearchModal();
+      };
+      searchResults.appendChild(li);
+    });
+  }
+});
+
+// Cerrar modal al dar clic en botón
+searchClose.onclick = closeSearchModal;
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const commentsOverlay = document.getElementById("commentsOverlay");
+  const commentsCounter = document.getElementById("commentsCounter");
+  const commentInputContainer = document.querySelector(".comment-input-container");
+
+  // Todo empieza oculto
+  commentsOverlay.classList.add("hidden-overlay");
+  commentsCounter.classList.add("hidden-overlay");
+  commentInputContainer.classList.add("hidden-overlay");
+
+  try {
+    const usuario = await getUsuarioDataFromUrl();
+    const videos = await obtenerListaVideos();
+
+    // Carga solo los slides del slider rápido
+    await cargarVideos(videos);
+
+    // 🔹 Precargamos todos los comentarios en segundo plano
+    await precargarComentariosTodos(videos);
+
+    // 🔹 Solo ahora mostramos la interfaz de comentarios
+    commentsOverlay.classList.remove("hidden-overlay");
+    commentsCounter.classList.remove("hidden-overlay");
+    commentInputContainer.classList.remove("hidden-overlay");
+
+    // 🔹 Renderizamos los comentarios del primer video
+    if (videos.length > 0) {
+      const primerVideoId = getActiveVideoId() || videos[0].id;
+      renderComentarios(primerVideoId);
+    }
+
+    console.log("✅ Todos los comentarios precargados, interfaz visible.");
+  } catch (e) {
+    console.error("❌ Error al inicializar:", e);
+    commentsOverlay.classList.remove("hidden-overlay");
+    commentsCounter.classList.remove("hidden-overlay");
+    commentInputContainer.classList.remove("hidden-overlay");
+  }
+
+  // ⬇️⬇️ Aquí agregas la lógica del buscador y WebViewString ⬇️⬇️
+
+  const searchModal = document.getElementById("search-modal");
+  const searchInput = document.getElementById("search-input");
+  const searchResults = document.getElementById("search-results");
+  const searchClose = document.getElementById("search-close");
+
+  function openSearchModal() {
+    searchModal.classList.remove("hidden");
+    searchInput.value = "";
+    searchResults.innerHTML = "";
+    searchInput.focus();
+  }
+
+  function closeSearchModal() {
+    searchModal.classList.add("hidden");
+  }
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+    searchResults.innerHTML = "";
+
+    if (!query) return;
+
+    const matches = lastVideos.filter(v => v.title.toLowerCase().includes(query));
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = "<li class='text-gray-400 px-2 py-1'>Sin resultados</li>";
+    } else {
+      matches.forEach(video => {
+        const li = document.createElement("li");
+        li.textContent = video.title;
+        li.onclick = () => {
+          const index = lastVideos.findIndex(v => v.id === video.id);
+          if (index !== -1 && swiper) {
+            swiper.slideToLoop(index, 0);
+          }
+          closeSearchModal();
+        };
+        searchResults.appendChild(li);
+      });
+    }
+  });
+
+  searchClose.onclick = closeSearchModal;
+
+  // 🔗 Integración con App Inventor
+  setInterval(() => {
+    try {
+      if (typeof window.AppInventor !== "undefined") {
+        const msg = AppInventor.getWebViewString();
+        if (msg === "buscar") {
+          openSearchModal();
+          AppInventor.setWebViewString(""); // reset
+        }
+      }
+    } catch (e) {
+      console.warn("Error leyendo WebViewString:", e);
+    }
+  }, 500);
+
+});
+
+
+
+
+
+// Mostrar/ocultar overlays al tocar el slider
+document.querySelector('.swiper').addEventListener('click', () => {
+  const currentTime = new Date().getTime();
+  if (currentTime - lastTapTime > 300) {
+    commentsOverlay.classList.toggle('hidden-overlay');
+    commentsCounter.classList.toggle('hidden-overlay');
+    commentInputContainer.classList.toggle('hidden-overlay');
+
+    // 🔔 Ocultar botón y lista de notificaciones
+    notificationWrapper.classList.toggle('hidden-overlay');
+    notificationList.classList.add('hidden'); // Cierra la lista si estaba abierta
+  }
+  lastTapTime = currentTime;
+});
+
+
+
+// === Expandir / Colapsar comentarios ===
+commentsOverlay.addEventListener('click', (e) => {
+  if (!isSwiping) {
+    commentsOverlay.classList.toggle('expanded');
+  }
+  isSwiping = false;
+});
+
+// === Swipe-to-delete en móviles ===
+commentsList.addEventListener('touchstart', (e) => {
+  const commentElement = e.target.closest('li');
+  if (!commentElement) return;
+  const commentData = commentElement.dataset;
+
+  if (normalizeText(commentData.correo) === normalizeText(usuarioCorreo)) {
+    startX = e.touches[0].clientX;
+    activeComment = commentElement;
+    activeComment.querySelector('.comment-content').style.transition = 'none';
+    isSwiping = false;
+  }
+});
+
+commentsList.addEventListener('touchmove', (e) => {
+  if (!activeComment) return;
+  const currentX = e.touches[0].clientX;
+  const diffX = currentX - startX;
+
+  if (Math.abs(diffX) > 10) isSwiping = true;
+
+  const commentContent = activeComment.querySelector('.comment-content');
+  const deleteBtnContainer = activeComment.querySelector('.delete-btn-container');
+
+  if (diffX > 0) {
+    commentContent.style.transform = `translateX(${diffX}px)`;
+    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(0)`;
+  } else {
+    commentContent.style.transform = `translateX(0)`;
+    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(-100%)`;
+  }
+});
+
+commentsList.addEventListener('touchend', (e) => {
+  if (!activeComment) return;
+  const swipeThreshold = 50;
+  const diffX = e.changedTouches[0].clientX - startX;
+
+  const commentContent = activeComment.querySelector('.comment-content');
+  let deleteBtnContainer = activeComment.querySelector('.delete-btn-container');
+  commentContent.style.transition = 'transform 0.3s ease';
+
+  if (diffX > swipeThreshold) {
+    commentContent.style.transform = `translateX(100px)`;
+    if (!deleteBtnContainer) {
+      deleteBtnContainer = document.createElement('div');
+      deleteBtnContainer.className = 'delete-btn-container';
+      const deleteBtn = document.createElement('div');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'Borrar';
+      deleteBtnContainer.appendChild(deleteBtn);
+      activeComment.insertBefore(deleteBtnContainer, commentContent);
+      deleteBtnContainer.style.transform = `translateX(0)`;
+
+      deleteBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const commentData = activeComment.dataset;
+        eliminarComentario(getActiveVideoId(), commentData.texto, commentData.correo);
+      });
+    } else {
+      deleteBtnContainer.style.transform = `translateX(0)`;
+    }
+  } else {
+    commentContent.style.transform = `translateX(0)`;
+    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(-100%)`;
+  }
+  activeComment = null;
+  startX = 0;
+});
+
+// === Obtener el ID del video activo ===
+function getActiveVideoId() {
+  if (!swiper) return null;
+  const activeSlide = swiper.slides[swiper.activeIndex];
+  if (!activeSlide) return null;
+  return activeSlide.dataset.videoid || null;
+}
+
+// 🗂️ Caché de comentarios
+const comentariosCache = {}; // { videoId: [comentarios] }
+
+// === Cargar comentarios desde Google Sheets con caché ===
+// === Cargar comentarios desde Google Sheets con caché ===
+// 🚀 Optimización: evitar fetch innecesarios y permitir forzar recarga
+async function cargarComentarios(videoId, render = true, options = {}) {
+  if (!videoId) return;
+
+  const force = options.force || false;
+
+  // ✅ Si ya tenemos en caché y no forzamos → render instantáneo
+  if (!force && comentariosCache[videoId]) {
+    comentariosPorVideo[videoId] = comentariosCache[videoId];
+    if (render) renderComentarios(videoId);
+    return;
+  }
+
+  // ✅ Si ya tenemos en memoria y no forzamos → usar eso
+  if (!force && comentariosPorVideo[videoId]) {
+    comentariosCache[videoId] = comentariosPorVideo[videoId];
+    if (render) renderComentarios(videoId);
+    return;
+  }
+
+  // ⚡ Si no hay datos o se forzó → fetch directo al servidor (con cache-buster)
+  try {
+    const res = await fetch(
+      `${SCRIPT_URL}?accion=listarComentarios&videoId=${encodeURIComponent(videoId)}&_=${Date.now()}`
+    );
+    const data = await res.json();
+
+    comentariosPorVideo[videoId] = Array.isArray(data.data)
+      ? data.data.map(c => ({
+          autor: c[2] || "Anónimo",
+          comentario: c[1] || "",
+          // 🔹 Formatear fecha siempre a local string
+          fecha: c[4] ? new Date(c[4]).toLocaleString() : "",
+          correo: c[3] || ""
+        }))
+      : [];
+
+    comentariosCache[videoId] = comentariosPorVideo[videoId];
+
+    if (render) renderComentarios(videoId);
+  } catch (e) {
+    console.error("Error cargando comentarios:", e);
+    comentariosPorVideo[videoId] = [];
+    comentariosCache[videoId] = [];
+    if (render) renderComentarios(videoId);
+  }
+}
+
+
+
+// === Renderizar comentarios en el DOM ===
+function renderComentarios(videoId) {
+  if (!videoId) return;
+
+  const lista = comentariosPorVideo[videoId] || [];
+  const commentsList = document.getElementById('commentsList');
+  const commentCountValue = document.getElementById('commentCountValue');
+
+  commentsList.innerHTML = '';
+
+  if (lista.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = "Sé el primero en comentar...";
+    commentsList.appendChild(li);
+    commentCountValue.textContent = "0";
+  } else {
+    lista.forEach(c => {
+      const li = document.createElement('li');
+      li.classList.add('deletable');
+
+      const commentContent = document.createElement('div');
+      commentContent.className = 'comment-content';
+      commentContent.textContent = `${c.autor} (${c.fecha}) - ${c.comentario}`;
+      li.appendChild(commentContent);
+
+      li.dataset.correo = c.correo;
+      li.dataset.texto = c.comentario;
+
+      if (normalizeText(c.correo) === normalizeText(usuarioCorreo)) {
+        const deleteBtnContainer = document.createElement('div');
+        deleteBtnContainer.className = 'delete-btn-container';
+        const deleteBtn = document.createElement('div');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Borrar';
+        deleteBtnContainer.appendChild(deleteBtn);
+        li.appendChild(deleteBtnContainer);
+
+        deleteBtn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          await eliminarComentario(videoId, c.comentario, c.correo);
+
+          if (comentariosCache[videoId]) {
+            comentariosCache[videoId] = comentariosCache[videoId].filter(
+              com => com.comentario !== c.comentario || com.correo !== c.correo
+            );
+          }
+
+          renderComentarios(videoId);
+        });
+      }
+
+      commentsList.appendChild(li);
+    });
+
+    commentCountValue.textContent = lista.length;
+  }
+}
+
+
+
+// === Enviar un nuevo comentario ===
+async function enviarComentario() {
+  const texto = commentInput.value.trim();
+  const videoId = getActiveVideoId();
+  if (!texto || !videoId) return;
+
+  sendCommentBtn.disabled = true;
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        accion: "agregarComentarioVideo",
+        videoId,
+        comentario: texto,
+        autor: usuarioAutor,
+        correo: usuarioCorreo,
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      commentInput.value = "";
+      // 🔄 Forzar recarga real desde servidor
+      await cargarComentarios(videoId, true, { force: true });
+
+      // ✅ Actualizar timestamp local y notificar a otros dispositivos
+      ultimaActualizacionComentarios = String(Date.now());
+      // 🚀 Notificar a otros dispositivos
+      notificarCambioComentarios();
+    } else {
+      console.error("❌ No se pudo guardar:", data.message);
+    }
+  } catch (e) {
+    console.error("Error al enviar comentario:", e);
+  } finally {
+    sendCommentBtn.disabled = false;
+  }
+}
+
+
+// === Listeners del input ===
+sendCommentBtn.addEventListener('click', enviarComentario);
+
+commentInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') enviarComentario();
+});
+
+commentInput.addEventListener('focus', () => {
+  document.body.style.transform = `translateY(-50%)`;
+});
+
+// 🔹 Cuando el input baja (pierde foco), se envía automáticamente si tiene texto
+commentInput.addEventListener('blur', () => {
+  document.body.style.transform = `translateY(0)`;
+
+  // Verificar si hay texto para enviar
+  const comentarioTexto = commentInput.value.trim();
+  if (comentarioTexto !== "") {
+    enviarComentario();
+  }
+});
+
+
+
+// === Precargar todos los comentarios al inicio ===
+async function precargarComentariosTodos(videos) {
+  for (const v of videos) {
+    // ⚡ Carga los comentarios pero NO renderiza si no es el video activo
+    await cargarComentarios(v.id, false);
+  }
+  console.log("✅ Todos los comentarios precargados en caché");
+}
+
+// === Eliminar comentario ===
+async function eliminarComentario(videoId, comentario, correo) {
+  if (!videoId || !comentario || !correo) return;
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        accion: "eliminarComentario",
+        videoId,
+        comentario,
+        correo
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      // 🔄 Forzar recarga real desde servidor
+      await cargarComentarios(videoId, true, { force: true });
+
+      // ✅ Actualizar timestamp local y notificar a otros dispositivos
+      ultimaActualizacionComentarios = String(Date.now());
+      // 🚀 Notificar a otros dispositivos
+      notificarCambioComentarios();
+    } else {
+      console.error("❌ No se eliminó:", data.message);
+    }
+  } catch (e) {
+    console.error("Error al eliminar comentario:", e);
+  }
+}
+
+
+// === 🔄 Sincronización de comentarios en tiempo casi real ===
+let ultimaActualizacionComentarios = "";
+
+// Inicializa el timestamp al cargar (evita primer “false positive”)
+async function initSyncComentarios() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?accion=ultimaActualizacionComentarios&_=${Date.now()}`);
+    const data = await res.json();
+    ultimaActualizacionComentarios = data.timestamp || "";
+  } catch (e) {
+    console.warn("No se pudo inicializar sync de comentarios:", e);
+  }
+}
+document.addEventListener('DOMContentLoaded', initSyncComentarios);
+
+// Verifica en el servidor si hubo cambios (con cache-buster)
+async function verificarComentariosVideos() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?accion=ultimaActualizacionComentarios&_=${Date.now()}`);
+    const data = await res.json();
+
+    if (data.timestamp && data.timestamp !== ultimaActualizacionComentarios) {
+      ultimaActualizacionComentarios = data.timestamp;
+
+      const videoId = getActiveVideoId();
+      if (videoId) {
+        // 👇 fuerza carga fresca desde servidor
+        await cargarComentarios(videoId, true, { force: true });
+      }
+    }
+  } catch (err) {
+    console.warn("No se pudo verificar comentarios:", err);
+  }
+}
+
+
+
+
+// Cada 5 segundos verificamos si hubo cambios
+setInterval(verificarComentariosVideos, 5000);
+
+// --- HOOK para disparar verificación inmediata tras alta/baja ---
+function notificarCambioComentarios() {
+  verificarComentariosVideos();
+}
+
+
+
+
+
+
+// === Cargar comentarios en tiempo real ===
+function iniciarComentariosTiempoReal() {
+  if (comentariosInterval) clearInterval(comentariosInterval);
+
+  const videoId = getActiveVideoId();
+  if (!videoId) return;
+
+  cargarComentarios(videoId);
+
+  comentariosInterval = setInterval(() => {
+    const idActual = getActiveVideoId();
+    if (idActual) cargarComentarios(idActual);
+  }, 3000);
+}
+
+// === Utilidad para normalizar texto/correos ===
+function normalizeText(text) {
+  return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+}
+
+
+
+        
+// === NOTIFICACIONES ===
+let notifications = [];
+let lastVideos = [];
+
+// Actualiza el listado de notificaciones
+function renderNotifications() {
+  const list = document.getElementById("notification-list");
+  const count = document.getElementById("notification-count");
+
+  list.innerHTML = "";
+
+  if (notifications.length === 0) {
+    list.innerHTML = "<div>Sin notificaciones</div>";
+    count.textContent = "";             // 👈 aseguramos que no quede número
+    count.style.display = "none";       // 👈 escondemos el circulito rojo
+    return;
+  }
+
+  count.textContent = notifications.length;
+  count.style.display = "block";        // 👈 solo aparece si hay notificaciones
+
+  notifications.forEach((notif, i) => {
+    const item = document.createElement("div");
+    item.textContent = notif.title;
+    item.style.cursor = "pointer";
+
+    item.onclick = () => {
+      const wrapper = document.getElementById("slides");
+
+      // Buscar si ya existe el slide del anuncio
+      let slide = Array.from(wrapper.children).find(s => {
+        const card = s.querySelector('.player-card');
+        return card && card.dataset.embed === notif.link;
+      });
+
+      // Si no existe, crearlo y agregarlo
+      if (!slide) {
+        const nuevoSlide = createSlide(notif.title, notif.link, notif.desc);
+        wrapper.appendChild(nuevoSlide);
+        swiper.update();
+      }
+
+      // Buscar índice real del slide en Swiper
+      let realIndex = -1;
+      swiper.slides.forEach((s, idx) => {
+        const card = s.querySelector('.player-card');
+        if (card && card.dataset.embed === notif.link) {
+          realIndex = idx;
+        }
+      });
+
+      if (swiper && realIndex !== -1) {
+        swiper.update();
+        cleanupIframesExceptActive();
+
+        swiper.slideTo(realIndex, 0);
+        updateFixedTitle(swiper);
+
+        swiper.once('slideChangeTransitionEnd', () => {
+          cleanupIframesExceptActive();
+          const activeCard = document.querySelector('.swiper-slide-active .player-card');
+          if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
+            mountIframe(activeCard);
+          }
+        });
+      }
+
+      // Marcar como leída y cerrar panel
+      notifications.splice(i, 1);
+      renderNotifications();
+      document.getElementById("notification-list").classList.add("hidden");
+    };
+
+    list.appendChild(item);
+  });
+}
+
+
+
+// --- BOTÓN NOTIFICACIONES UNIVERSAL ---
+const notifBtn = document.getElementById("notification-btn");
+const notifList = document.getElementById("notification-list");
+
+// Mostrar/ocultar la lista al tocar el botón (desktop y móvil)
+notifBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  notifList.classList.toggle("hidden");
+});
+
+        
+// Ocultar la lista al hacer clic fuera
+document.addEventListener("click", (e) => {
+  if (!notifList.classList.contains("hidden")) {
+    if (!notifList.contains(e.target) && e.target !== notifBtn) {
+      notifList.classList.add("hidden");
+    }
+  }
+});
+
+// --- MANEJO DE ELIMINACIÓN ---
+
+// Variables para almacenar los datos del usuario, obtenidos de la URL
+let usuarioAutor = "";
+let usuarioCorreo = "";
+
+// Función para obtener los parámetros 'name' y 'email' de la URL
+function getUsuarioDataFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    usuarioAutor = params.get("name") || "";
+    usuarioCorreo = params.get("email") || "";
+}
+
+// Llamar a la función al cargar la página para obtener los datos
+document.addEventListener("DOMContentLoaded", getUsuarioDataFromUrl);
+
+// NUEVO: Variables para el modal de alerta personalizada
+const customAlertModal = document.getElementById("custom-alert-modal");
+const customAlertMessage = document.getElementById("custom-alert-message");
+const customAlertOk = document.getElementById("custom-alert-ok");
+
+// NUEVO: Función para mostrar el modal de alerta personalizado
+function showAlert(message, title = "¡Atención!") {
+    customAlertMessage.textContent = message;
+    customAlertModal.querySelector('h3').textContent = title;
+    customAlertModal.classList.remove("hidden");
+}
+
+// NUEVO: Ocultar el modal de alerta cuando se hace clic en "Aceptar"
+customAlertOk.onclick = () => {
+    customAlertModal.classList.add("hidden");
+};
+
+const btnDelete = document.getElementById("btn-delete");
+const deleteModal = document.getElementById("delete-modal");
+const deleteTitle = document.getElementById("delete-video-title");
+const deleteConfirm = document.getElementById("delete-confirm");
+const deleteCancel = document.getElementById("delete-cancel");
+
+let pendingDelete = null;
+
+btnDelete.onclick = () => {
+    if (!swiper) return;
+    const activeSlide = document.querySelector(".swiper-slide-active");
+    if (!activeSlide) return;
+
+    const title = activeSlide.dataset.title;
+    const link = activeSlide.querySelector(".player-card")?.dataset.embed;
+
+    // Si no hay datos de usuario, notificar y salir
+    if (!usuarioAutor || !usuarioCorreo) {
+        showAlert("No se pudo obtener la información de tu cuenta. Intenta recargar la página.");
+        return;
+    }
+
+    pendingDelete = { title, link };
+    deleteTitle.textContent = `¿Eliminar "${title}"?`;
+    deleteModal.classList.remove("hidden");
+};
+
+deleteCancel.onclick = () => {
+    deleteModal.classList.add("hidden");
+    pendingDelete = null;
+};
+
+deleteConfirm.onclick = async () => {
+    if (!pendingDelete) return;
+    const { title, link } = pendingDelete;
+
+    deleteModal.classList.add("hidden");
+    pendingDelete = null;
+
+    let identifier = "";
+    let fileName = "";
+    let archiveMatch = link.match(/archive\.org\/download\/([^/]+)\/(.+)$/);
+    if (archiveMatch) {
+        identifier = archiveMatch[1];
+        fileName = decodeURIComponent(archiveMatch[2]);
+    }
+    
+    const deleteUrl = `${SCRIPT_URL}?accion=eliminar&link=${encodeURIComponent(link)}&id=${encodeURIComponent(identifier)}&file=${encodeURIComponent(fileName)}&autor=${encodeURIComponent(usuarioAutor)}&correo=${encodeURIComponent(usuarioCorreo)}`;
+
+    try {
+        const response = await fetch(deleteUrl);
+        const data = await response.json();
+
+        if (data.status === "success") {
+            const activeIndex = swiper.activeIndex; // 👈 usar activeIndex real del DOM
+            const activeSlide = swiper.slides[activeIndex];
+
+            if (activeSlide) {
+                activeSlide.remove();
+                swiper.update();
+
+                // Si hay slides, ir al mismo índice (que ahora apunta al siguiente inmediato)
+                if (swiper.slides.length > 0) {
+                    let targetIndex = Math.min(activeIndex, swiper.slides.length - 1);
+                    swiper.slideTo(targetIndex, 0); // 👈 movimiento exacto
+                }
             }
-          }, 200);
 
-          // Respuesta del servidor
-          xhr.onload = function() {
-            clearInterval(fakeProgress);
-            if (xhr.status === 200) {
-              var link = xhr.responseText;
-              document.getElementById("status").innerHTML =
-                "✅ Video subido: <a href='" + link + "' target='_blank'>" + link + "</a>";
-              document.getElementById("progressBar").value = 100;
-              document.getElementById("percent").innerText = "100%";
-            } else {
-              document.getElementById("status").innerHTML = "❌ Error al subir";
+            showAlert("✅ Video eliminado con éxito.", "¡Listo!");
+        } else {
+            showAlert("❌ Error al eliminar: " + data.message, "Error");
+        }
+    } catch (err) {
+        showAlert("⚠️ Error de conexión al intentar eliminar.", "Error");
+    }
+};
+
+
+
+
+        
+        let swiper = null;
+        let players = {};
+
+        function getEmbedInfo(link) {
+            const url = new URL(link, location.href);
+            if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
+                let videoId = "";
+                if (url.hostname.includes("youtube.com")) {
+                    videoId = url.searchParams.get("v") || "";
+                } else if (url.hostname.includes("youtu.be")) {
+                    videoId = url.pathname.replace("/", "");
+                }
+                if (videoId) {
+                    const embedSrc = `https://www.youtube.com/embed/${videoId}?rel=0&playsinline=1&controls=0&modestbranding=1`;
+                    const poster = "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg";
+                    return { type: "youtube", embedSrc, poster, videoId };
+                }
             }
-          };
+            if (url.hostname.includes("archive.org")) {
+                let identifier = "";
+                const m = link.match(/archive\.org\/(?:embed|details|download)\/([^?&#/]+)/i);
+                if (m && m[1]) {
+                    identifier = m[1];
+                }
+                const poster = identifier ? `https://archive.org/services/img/${identifier}` : "";
+                return { type: "mp4", embedSrc: link, poster: poster };
+            }
+            if (url.pathname.endsWith(".mp4")) {
+                 return { type: "mp4", embedSrc: link, poster: "" };
+            }
+            return { type: "other", embedSrc: link, poster: "" };
+        }
 
-          xhr.send("file=" + encodeURIComponent(data));
+    function createSlide(titulo, link, descripcion, id) {
+    const { embedSrc, poster } = getEmbedInfo(link);
+    const slide = document.createElement("div");
+    slide.className = "swiper-slide";
+    slide.dataset.title = titulo || "Video";
+    slide.dataset.descripcion = descripcion || "";
+    slide.dataset.videoid = id || ""; // ← AGREGA EL ID ÚNICO AQUÍ
+
+    const card = document.createElement("div");
+    card.className = "player-card";
+    card.dataset.embed = embedSrc;
+
+    const posterEl = document.createElement("div");
+    posterEl.className = "poster";
+    if (poster) posterEl.style.backgroundImage = `url("${poster}")`;
+
+    const playBtn = document.createElement("div");
+    playBtn.className = "play-btn";
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    posterEl.appendChild(playBtn);
+
+    posterEl.addEventListener("click", () => {
+        mountIframe(card);
+    });
+
+    card.appendChild(posterEl);
+    slide.appendChild(card);
+
+    return slide;
+}
+
+
+
+        function mountIframe(cardEl) {
+  // 🔥 Antes de montar, desmonta todo lo demás
+  cleanupIframesExceptActive();
+
+  if (cardEl.querySelector("iframe") || cardEl.querySelector("video")) return;
+
+  const src = cardEl.dataset.embed;
+  const info = getEmbedInfo(src);
+
+  const poster = cardEl.querySelector(".poster");
+  if (poster) poster.remove();
+  
+  const controls = createControls();
+  cardEl.appendChild(controls);
+
+  const centerPlayPauseBtn = document.createElement("div");
+  centerPlayPauseBtn.className = "center-play-pause-btn";
+  centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+  cardEl.appendChild(centerPlayPauseBtn);
+  
+  let player;
+
+  if (info.type === "youtube") {
+    const container = document.createElement("div");
+    container.className = "player-iframe";
+    cardEl.appendChild(container);
+
+    player = new YT.Player(container, {
+      videoId: info.videoId,
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
+      events: {
+        onReady: (event) => {
+          event.target.playVideo();
+          setupControls(event.target, 'youtube', controls, centerPlayPauseBtn, cardEl);
+        },
+        onStateChange: (event) => {
+          const state = event.data;
+          if (state === YT.PlayerState.PLAYING) {
+            centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            centerPlayPauseBtn.style.opacity = 0;
+          } else if (state === YT.PlayerState.PAUSED) {
+            centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            centerPlayPauseBtn.style.opacity = 1;
+          } else {
+            centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+          }
+        }
+      }
+    });
+    players[src] = player;
+  } else if (info.type === "mp4") {
+    const video = document.createElement("video");
+    video.className = "player-iframe";
+    video.setAttribute("autoplay", "true");
+    video.setAttribute("playsinline", "true");
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.background = "#000";
+
+    const source = document.createElement("source");
+    source.src = src;
+    source.type = "video/mp4";
+    video.appendChild(source);
+    cardEl.appendChild(video);
+
+    player = video;
+    players[src] = player;
+
+    video.addEventListener('loadedmetadata', () => {
+      setupControls(video, 'mp4', controls, centerPlayPauseBtn, cardEl);
+    });
+    video.addEventListener('play', () => {
+      centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+      centerPlayPauseBtn.style.opacity = 0;
+    });
+    video.addEventListener('pause', () => {
+      centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+      centerPlayPauseBtn.style.opacity = 1;
+    });
+    video.addEventListener('ended', () => {
+      centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+      centerPlayPauseBtn.style.opacity = 1;
+    });
+  } else {
+    const iframe = document.createElement("iframe");
+    iframe.className = "player-iframe";
+    iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.src = src + (src.includes("?") ? "&" : "?") + "autoplay=1";
+    cardEl.appendChild(iframe);
+  }
+}
+
+        
+        function createControls() {
+            const controlsBar = document.createElement("div");
+            controlsBar.className = "controls-bar";
+
+            const playPauseBtn = document.createElement("button");
+            playPauseBtn.className = "play-pause-btn";
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+
+            const progressBarContainer = document.createElement("div");
+            progressBarContainer.className = "progress-bar";
+            const progress = document.createElement("div");
+            progress.className = "progress";
+            progressBarContainer.appendChild(progress);
+
+            const timeDisplay = document.createElement("div");
+            timeDisplay.className = "time";
+            timeDisplay.textContent = "00:00 / 00:00";
+
+            const volumeControl = document.createElement("div");
+            volumeControl.className = "volume-control";
+            const volumeIcon = document.createElement("span");
+            volumeIcon.className = "volume-icon";
+            volumeIcon.innerHTML = '<i class="fas fa-volume-up"></i>';
+            const volumeSlider = document.createElement("input");
+            volumeSlider.type = "range";
+            volumeSlider.min = "0";
+            volumeSlider.max = "1";
+            volumeSlider.step = "0.01";
+            volumeSlider.value = "1";
+            volumeControl.appendChild(volumeIcon);
+            volumeControl.appendChild(volumeSlider);
+
+            controlsBar.appendChild(playPauseBtn);
+            controlsBar.appendChild(progressBarContainer);
+            controlsBar.appendChild(timeDisplay);
+            controlsBar.appendChild(volumeControl);
+
+            return controlsBar;
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return [h, m, s]
+                .filter(v => v > 0 || v === 0)
+                .map(v => v.toString().padStart(2, '0'))
+                .join(':')
+                .replace(/^00:/, '');
+        }
+
+        function setupControls(player, type, controls, centerPlayPauseBtn, cardEl) {
+            const playPauseBtn = controls.querySelector('.play-pause-btn');
+            const progressBarContainer = controls.querySelector('.progress-bar');
+            const progress = controls.querySelector('.progress');
+            const volumeSlider = controls.querySelector('.volume-control input');
+            const timeDisplay = controls.querySelector('.time');
+            let totalTime = 0;
+            let timeoutId;
+            
+            const hideControls = () => {
+                controls.style.opacity = 0;
+                if (type === 'youtube' && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    centerPlayPauseBtn.style.opacity = 0;
+                } else if (type === 'mp4' && !player.paused) {
+                    centerPlayPauseBtn.style.opacity = 0;
+                }
+            };
+            
+            const showControls = () => {
+                clearTimeout(timeoutId);
+                controls.style.opacity = 1;
+                centerPlayPauseBtn.style.opacity = 1;
+                timeoutId = setTimeout(hideControls, 3000);
+            };
+
+            const updateTime = () => {
+                let currentTime = 0;
+                if (type === 'youtube') {
+                    currentTime = player.getCurrentTime();
+                } else {
+                    currentTime = player.currentTime;
+                }
+                const progressPercentage = (currentTime / totalTime) * 100;
+                progress.style.width = `${progressPercentage}%`;
+                timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(totalTime)}`;
+            };
+
+            const interval = setInterval(updateTime, 1000);
+
+            cardEl.addEventListener('mouseenter', showControls);
+            cardEl.addEventListener('mouseleave', hideControls);
+            cardEl.addEventListener('mousemove', showControls);
+            
+            if (type === 'youtube') {
+                totalTime = player.getDuration();
+                updateTime();
+                playPauseBtn.onclick = () => {
+                    const state = player.getPlayerState();
+                    if (state === YT.PlayerState.PLAYING) {
+                        player.pauseVideo();
+                    } else {
+                        player.playVideo();
+                    }
+                };
+                centerPlayPauseBtn.onclick = playPauseBtn.onclick;
+
+                progressBarContainer.onclick = (e) => {
+                    const clickX = e.offsetX;
+                    const totalWidth = progressBarContainer.clientWidth;
+                    const newTime = (clickX / totalWidth) * totalTime;
+                    player.seekTo(newTime, true);
+                };
+                volumeSlider.oninput = (e) => player.setVolume(e.target.value * 100);
+            } else if (type === 'mp4') {
+                totalTime = player.duration;
+                updateTime();
+                playPauseBtn.onclick = () => {
+                    if (player.paused) {
+                        player.play();
+                    } else {
+                        player.pause();
+                    }
+                };
+                centerPlayPauseBtn.onclick = playPauseBtn.onclick;
+                progressBarContainer.onclick = (e) => {
+                    const clickX = e.offsetX;
+                    const totalWidth = progressBarContainer.clientWidth;
+                    const newTime = (clickX / totalWidth) * totalTime;
+                    player.currentTime = newTime;
+                };
+                volumeSlider.oninput = (e) => player.volume = e.target.value;
+                player.addEventListener('timeupdate', updateTime);
+            }
+        }
+
+        function restorePoster(card) {
+            const src = card.dataset.embed;
+            const player = players[src];
+            if (player) {
+                if (typeof player.pauseVideo === 'function') {
+                    player.pauseVideo();
+                } else if (typeof player.pause === 'function') {
+                    player.pause();
+                }
+            }
+
+            const playerContainer = card.querySelector(".player-iframe");
+            if (playerContainer) playerContainer.remove();
+
+            const controlsBar = card.querySelector(".controls-bar");
+            if (controlsBar) controlsBar.remove();
+            
+            const centerBtn = card.querySelector(".center-play-pause-btn");
+            if (centerBtn) centerBtn.remove();
+
+            if (!card.querySelector(".poster")) {
+                const info = getEmbedInfo(src);
+                const posterEl = document.createElement("div");
+                posterEl.className = "poster";
+                if (info.poster) {
+                    posterEl.style.backgroundImage = `url("${info.poster}")`;
+                }
+                const playBtn = document.createElement("div");
+                playBtn.className = "play-btn";
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                posterEl.appendChild(playBtn);
+                posterEl.addEventListener("click", () => mountIframe(card));
+                card.appendChild(posterEl);
+            }
+        }
+
+        // --- INICIO DE LA CORRECCIÓN ---
+function cleanupIframesExceptActive() {
+    if (!swiper) return;
+
+    swiper.slides.forEach((slide, index) => {
+        if (index !== swiper.activeIndex) {
+            const card = slide.querySelector(".player-card");
+            if (card) restorePoster(card);
+        }
+    });
+}
+
+        // --- FIN DE LA CORRECCIÓN ---
+
+     function updateFixedTitle(swiperInstance) {
+    const fixedBox = document.getElementById("video-title-fixed");
+    if (!fixedBox || !swiperInstance) return;
+
+    // Obtener el slide activo
+    const activeSlide = swiperInstance.slides[swiperInstance.activeIndex] || document.querySelector('.swiper-slide-active');
+
+    if (!activeSlide) return;
+
+    const newTitle = activeSlide.dataset.title || "Video";
+    const newDesc = activeSlide.dataset.descripcion || "";
+
+    const titleEl = fixedBox.querySelector(".video-title");
+    const descEl = fixedBox.querySelector(".video-desc");
+
+    // Verificar si el contenido ya es el mismo para evitar parpadeos innecesarios
+    const currentTitle = titleEl.querySelector('.text-container')?.textContent;
+    const currentDesc = descEl.querySelector('.text-container')?.textContent;
+    
+    if (currentTitle === newTitle && currentDesc === newDesc) {
+        return;
+    }
+
+    // Transición suave al cambiar de título
+    fixedBox.style.opacity = 0;
+
+    setTimeout(() => {
+        // Función genérica para manejar el truncamiento y expansión
+        const setupExpandableText = (element, text) => {
+            // Eliminar contenido anterior para evitar duplicados
+            element.innerHTML = `<span class="text-container">${text}</span>`;
+            const container = element.querySelector('.text-container');
+            
+            // Usar setTimeout para asegurar que la renderización está completa antes de medir
+            setTimeout(() => {
+                // Comprobar si el contenido se desborda y necesita truncamiento
+                if (container.scrollHeight > container.clientHeight) {
+                    const toggleButton = document.createElement('span');
+                    toggleButton.className = 'toggle-text';
+                    toggleButton.textContent = '...más';
+                    element.appendChild(toggleButton);
+
+                    // Añadir el listener para expandir/contraer
+                    element.addEventListener('click', () => {
+                        const isExpanded = container.classList.contains('expanded');
+                        if (isExpanded) {
+                            container.classList.remove('expanded');
+                            toggleButton.textContent = '...más';
+                        } else {
+                            container.classList.add('expanded');
+                            toggleButton.textContent = 'mostrar menos';
+                        }
+                    });
+                } else {
+                    // Si no necesita truncamiento, limpiar el listener y el botón
+                    const existingButton = element.querySelector('.toggle-text');
+                    if (existingButton) existingButton.remove();
+                    // Importante: Eliminar el listener si no es necesario para evitar problemas
+                    const clonedElement = element.cloneNode(true);
+                    element.parentNode.replaceChild(clonedElement, element);
+                }
+            }, 50);
         };
 
-        reader.readAsDataURL(file);
+        // Aplicar la lógica al título y la descripción
+        setupExpandableText(titleEl, newTitle);
+        setupExpandableText(descEl, newDesc);
+
+        // Mostrar el contenedor de nuevo
+        fixedBox.style.opacity = 1;
+    }, 120);
+}
+
+        
+
+
+// 🚀 Cargar videos + comentarios optimizado con precarga instantánea del primero
+async function cargarVideos(checkNew = false) {
+  const loader = document.getElementById("loader");
+  if (!checkNew) loader.style.display = "flex";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?accion=listar&tipo=videos`);
+    const data = await res.json();
+
+    const wrapper = document.getElementById("slides");
+    if (!checkNew) wrapper.innerHTML = "";
+
+    let newVideos = [];
+    if (Array.isArray(data.data)) {
+      data.data.forEach((row) => {
+        const titulo = row[0];
+        const link = row[1];
+        const descripcion = row[4] || "";
+        const id = row[5];
+        newVideos.push({ title: titulo, link, desc: descripcion, id });
+      });
+    }
+
+    // ⚡ Precargamos primero los comentarios del PRIMER video y los mostramos de inmediato
+    if (!checkNew && newVideos.length > 0) {
+      const primerVideoId = newVideos[0].id;
+      await cargarComentarios(primerVideoId, true); // <-- render inmediato
+
+      // 🔹 Luego precargamos el resto de comentarios sin bloquear la carga de videos
+      const videosRestantes = newVideos.slice(1);
+      if (videosRestantes.length > 0) {
+        Promise.all(videosRestantes.map(v => cargarComentarios(v.id, false)))
+          .catch(e => console.warn("Error precargando comentarios:", e));
       }
+    }
+
+    // ⚡ Ahora mostramos los videos (los comentarios del primero ya están listos)
+    if (!checkNew) {
+      newVideos.forEach(v => {
+        wrapper.appendChild(createSlide(v.title, v.link, v.desc, v.id));
+      });
+    }
+
+    // 🔥 Eliminación silenciosa (solo en modo checkNew)
+    if (checkNew) {
+      const linksActivos = newVideos.map(v => v.link);
+      Array.from(wrapper.children).forEach(slide => {
+        const card = slide.querySelector(".player-card");
+        if (card && !linksActivos.includes(card.dataset.embed)) {
+          wrapper.removeChild(slide);
+          if (swiper) swiper.update();
+        }
+      });
+    }
+
+    // 🛎️ Notificaciones de nuevos videos
+    if (checkNew && lastVideos.length > 0) { 
+      const nuevos = newVideos.filter(v => !lastVideos.find(old => old.link === v.link));
+      if (nuevos.length > 0) {
+        notifications.unshift(...nuevos);
+        renderNotifications();
+      }
+    }
+
+    lastVideos = newVideos;
+
+    // ✅ Inicializamos Swiper solo cuando TODO (videos + comentarios del primero) esté listo
+    if (!checkNew) {
+      if (swiper) swiper.destroy(true, true);
+      swiper = new Swiper(".swiper", {
+        loop: true,
+        direction: "vertical",
+        slidesPerView: 1,
+        spaceBetween: 10,
+        pagination: false,
+        on: {
+          init() {
+            updateFixedTitle(this);
+            activarSwipeParaBorrar();
+
+            // 🔹 Mostrar comentarios del video activo (ya precargados)
+            const videoId = getActiveVideoId();
+            if (videoId) renderComentarios(videoId);
+          },
+          slideChange() {
+            cleanupIframesExceptActive();
+            updateFixedTitle(this);
+            activarSwipeParaBorrar();
+
+            // 🔹 Mostrar comentarios instantáneamente al cambiar video
+            const videoId = getActiveVideoId();
+            if (videoId) renderComentarios(videoId);
+          },
+          slideChangeTransitionEnd() {
+            updateFixedTitle(this);
+          }
+        },
+      });
+
+      cleanupIframesExceptActive();
+      updateFixedTitle(swiper);
+      activarSwipeParaBorrar();
+
+      // 🔹 Mostrar comentarios para el primer video (ya están en caché)
+      const videoId = getActiveVideoId();
+      if (videoId) renderComentarios(videoId);
+    }
+  } catch (e) {
+    console.error("Error cargando videos:", e);
+  } finally {
+    loader.style.display = "none";
+  }
+}
+
+
+
+
+function activarSwipeParaBorrar() {
+  const comentarios = document.querySelectorAll(".comentario-propio"); // clase para tus comentarios
+
+  comentarios.forEach(comentario => {
+    let startX = 0;
+    let endX = 0;
+
+    comentario.addEventListener("touchstart", e => {
+      startX = e.touches[0].clientX;
+    });
+
+    comentario.addEventListener("touchmove", e => {
+      endX = e.touches[0].clientX;
+    });
+
+    comentario.addEventListener("touchend", () => {
+      if (startX - endX > 80) {  // si desliza a la izquierda más de 80px
+        eliminarComentario(comentario.dataset.id); // usa el id del comentario
+      }
+    });
+  });
+}
+
+
+
+
+// === AUTO REFRESCO EN SEGUNDO PLANO ===
+setInterval(() => {
+  cargarVideos(true); // solo refresca notificaciones, no toca el slider
+}, 3000);
+
+        cargarVideos();
     </script>
-  </body>
+</body>
 </html>
