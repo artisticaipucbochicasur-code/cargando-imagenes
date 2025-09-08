@@ -37,7 +37,7 @@
 .floating-buttons {
     position: fixed;
     bottom: 90px;
-    right: 20px;
+    right: 18px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -130,7 +130,7 @@
 .player-card {
     position: relative;
     width: 100%;
-    height: calc(100vh - 120px);
+    height: 100vh;
     background: #000;
     overflow: hidden;
     box-shadow: var(--card-shadow);
@@ -195,28 +195,25 @@
     padding-right: 15px;
 }
 
-/* Estilo para el botón de 'más' o 'menos' */
 #video-title-fixed .toggle-text {
     color: #ccc;
     font-size: 12px;
     font-weight: bold;
     user-select: none;
     display: inline-block;
-    position: absolute;
-    bottom: 0;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 2px 5px;
-    border-radius: 3px;
-    backdrop-filter: blur(2px);
+    margin-left: 6px;
+    cursor: pointer;
+    background: none !important; /* 👈 sin fondo */
+    padding: 0;
 }
+
 
 #video-title-fixed {
     position: absolute;
-    top: 0;
-    left: 10px;
-    width: auto;
-    max-width: 80%;
+    top: 0;          /* 👈 ya lo tienes, aquí lo dejamos */
+    left: 0;         /* alineado a la izquierda */
+    width: 100%;     /* ocupa todo el ancho */
+    max-width: 100%; /* no limitar */
     z-index: 1000;
     background: rgba(0,0,0,0.3);
     transition: opacity 0.18s ease;
@@ -226,8 +223,12 @@
     align-items: flex-start;
     padding: 6px 10px;
     margin: 0;
-    right: auto;
+    border-bottom-left-radius: 6px; /* 👌 opcional */
+    border-bottom-right-radius: 6px; /* 👌 opcional */
 }
+
+
+
 
 #video-title-fixed .video-title {
     font-size: 18px;
@@ -425,33 +426,31 @@
     color: #fff;
 }
 
-  /* Contenedor de comentarios (reducido por defecto) */
-   .comments-overlay-container {
-    position: fixed;
-    bottom: 60px;
-    left: 10px;
-    width: calc(80% - 20px);
-    background: rgba(0, 0, 0, 0.6);
-    color: #eee;
-    padding: 10px;
-    border-radius: 5px;
-    box-sizing: border-box;
-    z-index: 998;
-    overflow-y: auto;
-    transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease;
-    max-height: 4em;
-
-        white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+/* Contenedor de comentarios */
+.comments-overlay-container {
+  position: fixed;
+  bottom: 90px; /* 👈 ahora justo arriba de la barra de escribir */
+  left: 10px;
+  width: calc(80% - 20px);
+  background: rgba(0, 0, 0, 0.2); /* más transparente */
+  color: #eee;
+  padding: 8px;
+  border-radius: 5px;
+  box-sizing: border-box;
+  z-index: 998;
+  overflow-y: auto;
+  transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease;
+  max-height: 4em;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 
-    /* Estado expandido del contenedor de comentarios */
-    .comments-overlay-container.expanded {
-      max-height: 75vh;
-    }
-
+  /* expandido */
+.comments-overlay-container.expanded {
+  max-height: 70vh;
+}
     /* Estilos para la lista de comentarios */
     .comments-overlay-container ul {
         list-style: none;
@@ -565,70 +564,263 @@
         font-size: 0.9rem;
     }
 
-    /* Nuevo: Estilos para la barra de entrada de comentarios */
- .comment-input-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    padding: 10px 15px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 1000;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+/* Barra de entrada de comentarios */
+.comment-input-container {
+  position: fixed;
+  bottom: 39px;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  z-index: 1000;
 }
 
 
-  .comment-input-container input {
-    flex-grow: 1;
-    background: transparent;
-    border: 1px solid #555;
-    border-radius: 25px; /* más redondeado */
-    padding: 12px 20px;  /* 🔥 más alto y largo */
-    color: white;
-    font-size: 1rem;
-    outline: none;
-}
 
-
-    .comment-input-container .send-comment-btn {
-        background: transparent;
-        color: white;
-        border: none;
-        padding: 12px 17px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 1.8rem;
-    }
     
     .comment-input-container .send-comment-btn:hover {
         background: transparent;
     }
 
+  /* ✅ Nuevo diseño: óvalo completo */
+.comment-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: 1px solid #888;
+  border-radius: 25px;   /* ovalado completo */
+  width: 95%;            /* 👈 solo ocupa el 80% */
+  margin: 0 auto;        /* 👈 centrado */
+  padding: 4px 8px;      /* 👈 menos alto */
+}
 
+
+.comment-input-wrapper input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;          /* 👈 quita borde extra */
+  outline: none;
+  padding: 6px 8px;      /* 👈 más compacto */
+  font-size: 0.9rem;
+  color: white;
+}
+
+.comment-input-wrapper input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+.comment-input-wrapper button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;    /* 👈 tamaño justo */
+  cursor: pointer;
+  padding: 4px 6px;
+}
+/* Oculta el modal por defecto */
+.hidden {
+  display: none !important;
+}
+
+/* Fondo oscuro al abrir modal */
+#search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: flex-start; /* 👈 arriba */
+  justify-content: center;
+  padding-top: 40px;       /* 👈 separación desde arriba */
+  z-index: 9999;
+}
+
+
+/* Contenedor del modal */
+#search-modal .modal-content {
+  background: #111;
+  color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Input */
+#search-input {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 10px;
+  background: #222;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 5px;
+}
+
+/* Lista de resultados */
+#search-results {
+  max-height: 150px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#search-results li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+}
+
+#search-results li:hover {
+  background: #333;
+}
+
+/* Botón cerrar */
+#search-close {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+/* Clase para resaltar título al saltar desde buscador */
+/* Resaltado temporal para el contenedor de título */
+#video-title-fixed.highlight-container {
+  background: rgba(77, 163, 255, 0.35); /* azul suave translúcido */
+  transition: background 0.5s ease;
+}
+
+.refresh-btn {
+    position: fixed;
+    bottom: 250px; /* 🔹 Un poco más arriba que la campana */
+    right: 18px;
+    width: 40px; /* Igual que .fab */
+    height: 40px; /* Igual que .fab */
+    border-radius: 50%;
+    border: none;
+    background: transparent; /* Fondo transparente */
+    color: white; /* Ícono blanco */
+    font-size: 24px; /* Igual que .fab */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Igual que .fab */
+    z-index: 2000;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.refresh-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.social-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #222;
+  color: white;
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.app-name {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-icons button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.nav-icons button:hover {
+  color: #1e90ff;
+}
+
+.nav-icons button.active {
+  color: #1e90ff;
+}
+
+body {
+  padding-top: 60px; /* Espacio para el encabezado fijo */
+}
         
     </style>
 </head>
 <body>
 
+<header class="social-header">
+  <div class="app-name">DECOM</div>
+  <nav class="nav-icons">
+    <button id="publicar-btn" title="Publicar">
+      <i class="fas fa-plus-circle"></i>
+    </button>
+    <button id="anuncios-btn" title="Anuncios">
+      <i class="fas fa-bullhorn"></i>
+    </button>
+    <button id="videos-btn" title="Videos" class="active">
+      <i class="fas fa-video"></i>
+    </button>
+  </nav>
+</header>
 
+    
+<!-- 🔍 Modal de búsqueda -->
+<div id="search-modal" class="hidden">
+  <div class="modal-content">
+    <h3 style="margin:0 0 10px; font-size:18px;">Buscar video</h3>
+    <input type="text" id="search-input" placeholder="Escribe el título...">
+    <ul id="search-results"></ul>
+    <div class="modal-actions" style="margin-top:10px; text-align:right;">
+      <button id="search-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔄 Botón de actualizar -->
+<button id="refreshBtn" class="refresh-btn" title="Actualizar página">
+  <i class="fas fa-sync-alt"></i>
+</button>
 
     
 <div class="comments-overlay-container hidden-overlay" id="commentsOverlay">
   <ul id="commentsList"></ul>
 </div>
+
 <div class="comments-counter hidden-overlay" id="commentsCounter">
   <span class="icon">💬</span>
   <span class="count" id="commentCountValue">0</span>
 </div>
+
 <div class="comment-input-container hidden-overlay">
-  <input type="text" id="commentInput" placeholder="Escribe un comentario...">
-  <button class="send-comment-btn"><i class="fas fa-paper-plane"></i></button>
+  <div class="comment-input-wrapper">
+    <input type="text" id="commentInput" placeholder="Escribe un comentario...">
+    <button class="send-comment-btn"><i class="fas fa-paper-plane"></i></button>
+  </div>
 </div>
+
 
     
 <!-- Notificaciones -->
@@ -661,22 +853,25 @@
     </div>
   </div>
 </div>
-
-    
-        <!-- BOTONES flotantes -->
+<!-- BOTONES flotantes -->
    <div class="floating-buttons">
   <button id="btn-delete" class="fab danger"><i class="fas fa-trash"></i></button>
 </div>
 
   
 
-  <div class="swiper">
+<div class="swiper">
+  <div class="swiper-wrapper" id="slides">
+    <!-- aquí solo van los slides -->
+  </div>
+
+  <!-- 👇 contenedor global del título, fuera de los slides -->
   <div id="video-title-fixed">
     <div class="video-title"></div>
     <div class="video-desc"></div>
   </div>
-  <div class="swiper-wrapper" id="slides"></div>
 </div>
+
 
 
     <div id="loader"><span class="spinner">⏳</span></div>
@@ -684,6 +879,30 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+
+function navigateTo(page) {
+  if (typeof window.AppInventor !== "undefined" && window.AppInventor.setWebViewString) {
+    window.AppInventor.setWebViewString(page);
+    console.log("✅ Navegando a:", page);
+  } else {
+    window.location.href = page;
+    console.log("✅ Navegación directa a:", page);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("publicar-btn").addEventListener("click", () => {
+    navigateTo("https://artisticaipucbochicasur-code.github.io/Subir-Videos/upload.html");
+  });
+  document.getElementById("anuncios-btn").addEventListener("click", () => {
+    navigateTo("https://artisticaipucbochicasur-code.github.io/pase-de-fotos-vertical/fotos.html");
+  });
+  document.getElementById("videos-btn").addEventListener("click", () => {
+    navigateTo("https://artisticaipucbochicasur-code.github.io/slider-de-videos/sliderVideos.html");
+  });
+});
+
+        
         const SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
 
@@ -704,6 +923,16 @@ let activeComment = null;
 let startX = 0;
 let isSwiping = false;
 
+const refreshBtn = document.getElementById("refreshBtn");
+
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", () => {
+    location.reload(); // 🔄 Recarga la página completamente
+  });
+}
+
+
+        
 document.addEventListener("DOMContentLoaded", async () => {
   const commentsOverlay = document.getElementById("commentsOverlay");
   const commentsCounter = document.getElementById("commentsCounter");
@@ -729,28 +958,140 @@ document.addEventListener("DOMContentLoaded", async () => {
     commentsCounter.classList.remove("hidden-overlay");
     commentInputContainer.classList.remove("hidden-overlay");
 
-    // 🔹 Renderizamos los comentarios del primer video para la visualización inicial
+    // 🔹 Renderizamos los comentarios del primer video
     if (videos.length > 0) {
       const primerVideoId = getActiveVideoId() || videos[0].id;
       renderComentarios(primerVideoId);
     }
 
     console.log("✅ Todos los comentarios precargados, interfaz visible.");
-
   } catch (e) {
     console.error("❌ Error al inicializar:", e);
-    // En caso de error, mostramos la interfaz de todas formas
     commentsOverlay.classList.remove("hidden-overlay");
     commentsCounter.classList.remove("hidden-overlay");
     commentInputContainer.classList.remove("hidden-overlay");
+  }
+
+  // ⬇️⬇️ Buscador integrado (App Inventor + modal emergente) ⬇️⬇️
+
+  const searchModal = document.getElementById("search-modal");
+  const searchInput = document.getElementById("search-input");
+  const searchResults = document.getElementById("search-results");
+  const searchClose = document.getElementById("search-close");
+
+  function openSearchModal() {
+    searchModal.classList.remove("hidden");
+    searchInput.value = "";
+    searchResults.innerHTML = "";
+    searchInput.focus();
+  }
+
+  function closeSearchModal() {
+    searchModal.classList.add("hidden");
+  }
+
+ searchInput.addEventListener("input", () => {
+  const query = searchInput.value.toLowerCase().trim(); // 👈 normalizamos
+  searchResults.innerHTML = "";
+
+  if (!query) return;
+
+  // 👇 normalizamos también los títulos para comparar sin importar mayúsculas/espacios
+  const matches = lastVideos.filter(v =>
+    v.title.toLowerCase().trim().includes(query)
+  );
+
+  if (matches.length === 0) {
+    searchResults.innerHTML = "<li style='padding:6px; color:#aaa;'>Sin resultados</li>";
+  } else {
+    matches.forEach(video => {
+      const li = document.createElement("li");
+      li.textContent = video.title;
+      li.style.padding = "6px";
+      li.style.cursor = "pointer";
+      li.onmouseover = () => (li.style.background = "#333");
+      li.onmouseout = () => (li.style.background = "transparent");
+    li.onclick = () => {
+  const index = lastVideos.findIndex(v => v.id === video.id);
+  if (index !== -1 && swiper) {
+    swiper.slideToLoop(index, 0);
+
+    // 👇 Esperamos a que el swiper cambie de slide y resaltamos el título
+   setTimeout(() => {
+  const container = document.getElementById("video-title-fixed");
+  if (container) {
+    container.classList.add("highlight-container");
+    // Quitar el resaltado después de 3 segundos
+    setTimeout(() => {
+      container.classList.remove("highlight-container");
+    }, 3000);
+  }
+}, 300);
+ // delay pequeño para asegurar que se actualice el título
+  }
+  closeSearchModal();
+};
+
+      searchResults.appendChild(li);
+    });
   }
 });
 
 
 
 
+
+  searchClose.onclick = closeSearchModal;
+
+  // 🔗 Integración con App Inventor (muestra buscador cuando recibe "buscar")
+  setInterval(() => {
+    try {
+      if (typeof window.AppInventor !== "undefined") {
+        const msg = AppInventor.getWebViewString();
+
+        if (msg === "buscar") {
+          openSearchModal();
+          AppInventor.setWebViewString(""); // reset
+        }
+
+        // 👇 Nuevo: comando "pausa"
+        if (msg === "pausa") {
+          console.log("⏸ Recibido comando pausa desde App Inventor");
+
+          const activeCard = document.querySelector(".swiper-slide-active .player-card");
+          if (activeCard) {
+            const src = activeCard.dataset.embed;
+            const player = players[src];
+
+            if (player) {
+              if (typeof player.pauseVideo === "function") {
+                player.pauseVideo(); // YouTube
+                console.log("YouTube pausado");
+              } else if (typeof player.pause === "function") {
+                player.pause(); // MP4
+                console.log("Video MP4 pausado");
+              }
+            }
+          }
+
+          AppInventor.setWebViewString(""); // reset
+        }
+      }
+    } catch (e) {
+      console.warn("Error leyendo WebViewString:", e);
+    }
+  }, 500);
+});
+
+
+
 // Mostrar/ocultar overlays al tocar el slider
-document.querySelector('.swiper').addEventListener('click', () => {
+document.querySelector('.swiper').addEventListener('click', (e) => {
+  // 👉 Evitar que se cierre si se hace click en el título o descripción
+  if (e.target.closest('#video-title-fixed')) {
+    return; // no hacer nada
+  }
+
   const currentTime = new Date().getTime();
   if (currentTime - lastTapTime > 300) {
     commentsOverlay.classList.toggle('hidden-overlay');
@@ -760,9 +1101,21 @@ document.querySelector('.swiper').addEventListener('click', () => {
     // 🔔 Ocultar botón y lista de notificaciones
     notificationWrapper.classList.toggle('hidden-overlay');
     notificationList.classList.add('hidden'); // Cierra la lista si estaba abierta
+
+    // 👇 También alternar el título
+    document.getElementById("video-title-fixed").classList.toggle("hidden-overlay");
+
+    // 🆕 También ocultar/mostrar el botón de actualizar
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn) {
+      refreshBtn.classList.toggle("hidden-overlay");
+    }
   }
   lastTapTime = currentTime;
 });
+
+
+
 
 
 
@@ -852,6 +1205,19 @@ function getActiveVideoId() {
   return activeSlide.dataset.videoid || null;
 }
 
+let hasSentWebViewString = false;
+function sendToAppInventor(value) {
+  if (!hasSentWebViewString && typeof window.AppInventor !== "undefined" && window.AppInventor.setWebViewString) {
+    window.AppInventor.setWebViewString(value);
+    console.log("✅ Enviado a App Inventor:", value);
+    hasSentWebViewString = true;
+    setTimeout(() => { hasSentWebViewString = false; }, 1000); // Resetear bandera después de 1 segundo
+  }
+}
+
+
+
+        
 // 🗂️ Caché de comentarios
 const comentariosCache = {}; // { videoId: [comentarios] }
 
@@ -915,15 +1281,21 @@ function renderComentarios(videoId) {
   const commentsList = document.getElementById('commentsList');
   const commentCountValue = document.getElementById('commentCountValue');
 
+  if (!commentsList || !commentCountValue) {
+    console.error("❌ Error: Contenedor de comentarios o contador no encontrado en el DOM");
+    return;
+  }
+
   commentsList.innerHTML = '';
 
+  // 🔥 FIX2: Reforzado para siempre mostrar mensaje si length === 0 exacto
   if (lista.length === 0) {
-    const li = document.createElement('li');
-    li.textContent = "Sé el primero en comentar...";
-    commentsList.appendChild(li);
+    commentsList.innerHTML = '<li>Sé el primero en comentar...</li>';
     commentCountValue.textContent = "0";
   } else {
-    lista.forEach(c => {
+    // 🔥 FIX13: Invertir el orden de los comentarios para que el más reciente esté arriba
+    const comentariosInvertidos = [...lista].reverse();
+    comentariosInvertidos.forEach(c => {
       const li = document.createElement('li');
       li.classList.add('deletable');
 
@@ -947,13 +1319,6 @@ function renderComentarios(videoId) {
         deleteBtn.addEventListener('click', async (ev) => {
           ev.stopPropagation();
           await eliminarComentario(videoId, c.comentario, c.correo);
-
-          if (comentariosCache[videoId]) {
-            comentariosCache[videoId] = comentariosCache[videoId].filter(
-              com => com.comentario !== c.comentario || com.correo !== c.correo
-            );
-          }
-
           renderComentarios(videoId);
         });
       }
@@ -963,9 +1328,9 @@ function renderComentarios(videoId) {
 
     commentCountValue.textContent = lista.length;
   }
+
+  console.log(`✅ Renderizados ${lista.length} comentarios para video ${videoId} en orden inverso`);
 }
-
-
 
 // === Enviar un nuevo comentario ===
 async function enviarComentario() {
@@ -1098,10 +1463,16 @@ async function verificarComentariosVideos() {
     if (data.timestamp && data.timestamp !== ultimaActualizacionComentarios) {
       ultimaActualizacionComentarios = data.timestamp;
 
-      const videoId = getActiveVideoId();
-      if (videoId) {
-        // 👇 fuerza carga fresca desde servidor
-        await cargarComentarios(videoId, true, { force: true });
+      // 🔥 FIX2: Usar lastVideos para obtener TODOS los videoIds conocidos y recargarlos (sin render, background)
+      const videoIds = lastVideos.map(v => v.id);
+      for (const videoId of videoIds) {
+        await cargarComentarios(videoId, false, { force: true }); // No render, solo caché fresco
+      }
+
+      // Luego, render solo para el activo (con datos frescos)
+      const videoIdActivo = getActiveVideoId();
+      if (videoIdActivo) {
+        renderComentarios(videoIdActivo);
       }
     }
   } catch (err) {
@@ -1117,7 +1488,8 @@ setInterval(verificarComentariosVideos, 5000);
 
 // --- HOOK para disparar verificación inmediata tras alta/baja ---
 function notificarCambioComentarios() {
-  verificarComentariosVideos();
+  // 🔥 FIX2: Pequeño delay para asegurar que el servidor actualice el timestamp antes del chequeo
+  setTimeout(verificarComentariosVideos, 0);
 }
 
 
@@ -1152,30 +1524,58 @@ function normalizeText(text) {
 let notifications = [];
 let lastVideos = [];
 
-// Actualiza el listado de notificaciones
 function renderNotifications() {
   const list = document.getElementById("notification-list");
   const count = document.getElementById("notification-count");
+
+  if (!list || !count) {
+    console.error("❌ Error: Elementos de notificaciones no encontrados en el DOM");
+    return;
+  }
 
   list.innerHTML = "";
 
   if (notifications.length === 0) {
     list.innerHTML = "<div>Sin notificaciones</div>";
-    count.textContent = "";             // 👈 aseguramos que no quede número
-    count.style.display = "none";       // 👈 escondemos el circulito rojo
+    count.textContent = "";
+    count.style.display = "none";
+
+    try {
+      if (typeof AppInventor !== "undefined" && AppInventor.setWebViewString) {
+        AppInventor.setWebViewString("0");
+      }
+    } catch (e) {
+      console.warn("No se pudo enviar a App Inventor:", e);
+    }
     return;
   }
 
   count.textContent = notifications.length;
-  count.style.display = "block";        // 👈 solo aparece si hay notificaciones
+  count.style.display = "block";
 
   notifications.forEach((notif, i) => {
+    if (!notif || !notif.link || !notif.title || !notif.id) {
+      console.warn("⚠️ Notificación inválida detectada:", notif);
+      return; // 🔥 FIX7: Evitar procesar notificaciones vacías/inválidas
+    }
+
     const item = document.createElement("div");
     item.textContent = notif.title;
     item.style.cursor = "pointer";
 
     item.onclick = () => {
       const wrapper = document.getElementById("slides");
+      if (!wrapper) {
+        console.error("❌ Error: Contenedor de slides no encontrado");
+        return;
+      }
+
+      // 🔥 FIX7: Guardar y precargar comentarios del video actual solo si no están en caché
+      const currentVideoId = getActiveVideoId();
+      if (currentVideoId && !comentariosPorVideo[currentVideoId]) {
+        cargarComentarios(currentVideoId, false, { force: true });
+        console.log(`✅ Precargando comentarios para video actual ${currentVideoId}`);
+      }
 
       // Buscar si ya existe el slide del anuncio
       let slide = Array.from(wrapper.children).find(s => {
@@ -1183,37 +1583,77 @@ function renderNotifications() {
         return card && card.dataset.embed === notif.link;
       });
 
+      let isNewSlide = false;
       // Si no existe, crearlo y agregarlo
       if (!slide) {
-        const nuevoSlide = createSlide(notif.title, notif.link, notif.desc);
-        wrapper.appendChild(nuevoSlide);
-        swiper.update();
-      }
-
-      // Buscar índice real del slide en Swiper
-      let realIndex = -1;
-      swiper.slides.forEach((s, idx) => {
-        const card = s.querySelector('.player-card');
-        if (card && card.dataset.embed === notif.link) {
-          realIndex = idx;
+        isNewSlide = true;
+        const nuevoSlide = createSlide(notif.title, notif.link, notif.desc, notif.id);
+        if (swiper) {
+          swiper.appendSlide(nuevoSlide);
+          console.log("✅ Nuevo slide añadido al final con appendSlide");
+        } else {
+          wrapper.appendChild(nuevoSlide);
         }
-      });
-
-      if (swiper && realIndex !== -1) {
-        swiper.update();
-        cleanupIframesExceptActive();
-
-        swiper.slideTo(realIndex, 0);
-        updateFixedTitle(swiper);
-
-        swiper.once('slideChangeTransitionEnd', () => {
-          cleanupIframesExceptActive();
-          const activeCard = document.querySelector('.swiper-slide-active .player-card');
-          if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
-            mountIframe(activeCard);
-          }
-        });
+        lastVideos.push({ title: notif.title, link: notif.link, desc: notif.desc, id: notif.id });
+        // 🔥 FIX7: Precargar comentarios del nuevo video para evitar alternancia
+        cargarComentarios(notif.id, false, { force: true });
       }
+
+      // 🔥 FIX7: Delay para sincronización del DOM/Swiper
+      setTimeout(() => {
+        // Buscar índice real del slide en Swiper
+        let realIndex = -1;
+        if (swiper) {
+          swiper.slides.forEach((s, idx) => {
+            const card = s.querySelector('.player-card');
+            if (card && card.dataset.embed === notif.link) {
+              realIndex = idx;
+            }
+          });
+          if (isNewSlide && realIndex === -1) {
+            realIndex = swiper.slides.length - 1;
+            console.log(`✅ Nuevo video posicionado en índice final: ${realIndex}`);
+          }
+        }
+
+        if (swiper && realIndex !== -1) {
+          cleanupIframesExceptActive();
+          swiper.slideTo(realIndex, 0);
+          updateFixedTitle(swiper);
+
+          const videoId = getActiveVideoId();
+          if (videoId) {
+            if (!comentariosPorVideo[videoId] || comentariosPorVideo[videoId].length === 0) {
+              cargarComentarios(videoId, true, { force: true });
+            } else {
+              renderComentarios(videoId);
+            }
+          }
+
+          swiper.once('slideChangeTransitionEnd', () => {
+            cleanupIframesExceptActive();
+            const activeCard = document.querySelector('.swiper-slide-active .player-card');
+            if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
+              mountIframe(activeCard);
+            }
+            const videoIdFinal = getActiveVideoId();
+            if (videoIdFinal) {
+              if (!comentariosPorVideo[videoIdFinal] || comentariosPorVideo[videoIdFinal].length === 0) {
+                cargarComentarios(videoIdFinal, true, { force: true });
+              } else {
+                renderComentarios(videoIdFinal);
+              }
+            }
+            // 🔥 FIX7: Restaurar comentarios del video original si están en caché
+            if (currentVideoId && comentariosPorVideo[currentVideoId]) {
+              console.log(`✅ Restaurando comentarios para video original ${currentVideoId}`);
+              renderComentarios(currentVideoId);
+            }
+          });
+        } else {
+          console.error("❌ Error: Swiper o índice no válido al intentar navegar al nuevo video");
+        }
+      }, 100);
 
       // Marcar como leída y cerrar panel
       notifications.splice(i, 1);
@@ -1223,10 +1663,15 @@ function renderNotifications() {
 
     list.appendChild(item);
   });
+
+  try {
+    if (typeof AppInventor !== "undefined" && AppInventor.setWebViewString) {
+     sendToAppInventor(String(notifications.length));
+    }
+  } catch (e) {
+    console.warn("No se pudo enviar a App Inventor:", e);
+  }
 }
-
-
-
 // --- BOTÓN NOTIFICACIONES UNIVERSAL ---
 const notifBtn = document.getElementById("notification-btn");
 const notifList = document.getElementById("notification-list");
@@ -1416,7 +1861,7 @@ deleteConfirm.onclick = async () => {
     posterEl.appendChild(playBtn);
 
     posterEl.addEventListener("click", () => {
-        mountIframe(card);
+        mountIframe(card, true);
     });
 
     card.appendChild(posterEl);
@@ -1427,9 +1872,9 @@ deleteConfirm.onclick = async () => {
 
 
 
-        function mountIframe(cardEl) {
+        function mountIframe(cardEl, autoplay = true) {
   // 🔥 Antes de montar, desmonta todo lo demás
-  cleanupIframesExceptActive();
+  cleanupIframesExceptActiveAndAdjacent();
 
   if (cardEl.querySelector("iframe") || cardEl.querySelector("video")) return;
 
@@ -1456,10 +1901,10 @@ deleteConfirm.onclick = async () => {
 
     player = new YT.Player(container, {
       videoId: info.videoId,
-      playerVars: { autoplay: 1, rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
+      playerVars: { autoplay: autoplay ? 1 : 0, rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
       events: {
         onReady: (event) => {
-          event.target.playVideo();
+          if (autoplay) event.target.playVideo();
           setupControls(event.target, 'youtube', controls, centerPlayPauseBtn, cardEl);
         },
         onStateChange: (event) => {
@@ -1480,7 +1925,7 @@ deleteConfirm.onclick = async () => {
   } else if (info.type === "mp4") {
     const video = document.createElement("video");
     video.className = "player-iframe";
-    video.setAttribute("autoplay", "true");
+    if (autoplay) video.setAttribute("autoplay", "true");
     video.setAttribute("playsinline", "true");
     video.style.width = "100%";
     video.style.height = "100%";
@@ -1497,6 +1942,7 @@ deleteConfirm.onclick = async () => {
 
     video.addEventListener('loadedmetadata', () => {
       setupControls(video, 'mp4', controls, centerPlayPauseBtn, cardEl);
+      if (!autoplay) video.pause();
     });
     video.addEventListener('play', () => {
       centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -1515,7 +1961,7 @@ deleteConfirm.onclick = async () => {
     iframe.className = "player-iframe";
     iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
     iframe.setAttribute("allowfullscreen", "true");
-    iframe.src = src + (src.includes("?") ? "&" : "?") + "autoplay=1";
+    iframe.src = src + (src.includes("?") ? "&" : "?") + (autoplay ? "autoplay=1" : "");
     cardEl.appendChild(iframe);
   }
 }
@@ -1561,7 +2007,7 @@ deleteConfirm.onclick = async () => {
             return controlsBar;
         }
 
-        function formatTime(seconds) {
+function formatTime(seconds) {
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = Math.floor(seconds % 60);
@@ -1688,32 +2134,60 @@ deleteConfirm.onclick = async () => {
                 playBtn.className = "play-btn";
                 playBtn.innerHTML = '<i class="fas fa-play"></i>';
                 posterEl.appendChild(playBtn);
-                posterEl.addEventListener("click", () => mountIframe(card));
+                posterEl.addEventListener("click", () => mountIframe(card, true));
                 card.appendChild(posterEl);
             }
         }
 
         // --- INICIO DE LA CORRECCIÓN ---
-function cleanupIframesExceptActive() {
+function cleanupIframesExceptActiveAndAdjacent() {
     if (!swiper) return;
 
+    const activeIndex = swiper.activeIndex;
+    const prevIndex = (activeIndex - 1 + swiper.slides.length) % swiper.slides.length;
+    const nextIndex = (activeIndex + 1) % swiper.slides.length;
+
     swiper.slides.forEach((slide, index) => {
-        if (index !== swiper.activeIndex) {
+        if (index !== activeIndex && index !== prevIndex && index !== nextIndex) {
             const card = slide.querySelector(".player-card");
-            if (card) restorePoster(card);
+            if (card) {
+                const src = card.dataset.embed;
+                const player = players[src];
+                if (player) {
+                    if (typeof player.pauseVideo === 'function') player.pauseVideo();
+                    else if (typeof player.pause === 'function') player.pause();
+                    delete players[src]; // Limpiar el reproductor de la memoria
+                }
+                restorePoster(card); // Restaurar el póster solo para slides no adyacentes
+            }
+        } else if (index !== activeIndex) {
+            // Para prev y next, pausar si está reproduciendo, pero mantener el iframe/video
+            const card = slide.querySelector(".player-card");
+            if (card) {
+                const src = card.dataset.embed;
+                const player = players[src];
+                if (player) {
+                    if (typeof player.pauseVideo === 'function') player.pauseVideo();
+                    else if (typeof player.pause === 'function') player.pause();
+                    // Actualizar botón central para slides adyacentes
+                    const centerPlayPauseBtn = card.querySelector('.center-play-pause-btn');
+                    if (centerPlayPauseBtn) {
+                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        centerPlayPauseBtn.style.opacity = 1;
+                    }
+                }
+            }
         }
     });
 }
 
         // --- FIN DE LA CORRECCIÓN ---
 
-     function updateFixedTitle(swiperInstance) {
+   function updateFixedTitle(swiperInstance) {
     const fixedBox = document.getElementById("video-title-fixed");
     if (!fixedBox || !swiperInstance) return;
 
-    // Obtener el slide activo
     const activeSlide = swiperInstance.slides[swiperInstance.activeIndex] || document.querySelector('.swiper-slide-active');
-
     if (!activeSlide) return;
 
     const newTitle = activeSlide.dataset.title || "Video";
@@ -1722,7 +2196,6 @@ function cleanupIframesExceptActive() {
     const titleEl = fixedBox.querySelector(".video-title");
     const descEl = fixedBox.querySelector(".video-desc");
 
-    // Verificar si el contenido ya es el mismo para evitar parpadeos innecesarios
     const currentTitle = titleEl.querySelector('.text-container')?.textContent;
     const currentDesc = descEl.querySelector('.text-container')?.textContent;
     
@@ -1730,62 +2203,83 @@ function cleanupIframesExceptActive() {
         return;
     }
 
-    // Transición suave al cambiar de título
     fixedBox.style.opacity = 0;
 
     setTimeout(() => {
-        // Función genérica para manejar el truncamiento y expansión
-        const setupExpandableText = (element, text) => {
-            // Eliminar contenido anterior para evitar duplicados
-            element.innerHTML = `<span class="text-container">${text}</span>`;
-            const container = element.querySelector('.text-container');
+        const setupExpandableText = (element, text, allowExpand = true) => {
+            // ✅ limpiar cualquier rastro previo (importante en la primera carga)
+            element.innerHTML = "";
             
-            // Usar setTimeout para asegurar que la renderización está completa antes de medir
+            const container = document.createElement("span");
+            container.className = "text-container";
+            container.textContent = text;
+            element.appendChild(container);
+
             setTimeout(() => {
-                // Comprobar si el contenido se desborda y necesita truncamiento
-                if (container.scrollHeight > container.clientHeight) {
-                    const toggleButton = document.createElement('span');
-                    toggleButton.className = 'toggle-text';
-                    toggleButton.textContent = '...más';
+                if (!allowExpand) return; // 👈 el título no se expande
+
+                // crear copia para medir sin clamp
+                const temp = container.cloneNode(true);
+                temp.style.display = "inline-block";
+                temp.style.webkitLineClamp = "unset";
+                temp.style.maxHeight = "none";
+                temp.style.visibility = "hidden";
+                element.appendChild(temp);
+
+                const needsClamp = temp.scrollHeight > container.clientHeight;
+                temp.remove();
+
+                if (needsClamp) {
+                    // ✅ asegurar que no se dupliquen botones
+                    element.querySelectorAll(".toggle-text").forEach(btn => btn.remove());
+
+                    const toggleButton = document.createElement("span");
+                    toggleButton.className = "toggle-text";
+                    toggleButton.textContent = "...más";
                     element.appendChild(toggleButton);
 
-                    // Añadir el listener para expandir/contraer
-                    element.addEventListener('click', () => {
-                        const isExpanded = container.classList.contains('expanded');
+                    const toggleExpand = () => {
+                        const isExpanded = container.classList.contains("expanded");
                         if (isExpanded) {
-                            container.classList.remove('expanded');
-                            toggleButton.textContent = '...más';
+                            container.classList.remove("expanded");
+                            toggleButton.textContent = "...más";
                         } else {
-                            container.classList.add('expanded');
-                            toggleButton.textContent = 'mostrar menos';
+                            container.classList.add("expanded");
+                            toggleButton.textContent = "mostrar menos";
                         }
+                    };
+
+                    // clic en el botón o en el contenedor
+                    toggleButton.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        toggleExpand();
                     });
-                } else {
-                    // Si no necesita truncamiento, limpiar el listener y el botón
-                    const existingButton = element.querySelector('.toggle-text');
-                    if (existingButton) existingButton.remove();
-                    // Importante: Eliminar el listener si no es necesario para evitar problemas
-                    const clonedElement = element.cloneNode(true);
-                    element.parentNode.replaceChild(clonedElement, element);
+                    container.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        toggleExpand();
+                    });
                 }
             }, 50);
         };
 
-        // Aplicar la lógica al título y la descripción
-        setupExpandableText(titleEl, newTitle);
-        setupExpandableText(descEl, newDesc);
+        setupExpandableText(titleEl, newTitle, false); // 👈 título siempre completo
+        setupExpandableText(descEl, newDesc, true);   // 👈 descripción expandible
 
-        // Mostrar el contenedor de nuevo
         fixedBox.style.opacity = 1;
     }, 120);
 }
 
+
+
         
 
 
-// 🚀 Cargar videos + comentarios optimizado con precarga instantánea del primero
 async function cargarVideos(checkNew = false) {
   const loader = document.getElementById("loader");
+  if (!loader) {
+    console.error("❌ Error: Elemento loader no encontrado en el DOM");
+    return;
+  }
   if (!checkNew) loader.style.display = "flex";
 
   try {
@@ -1793,6 +2287,11 @@ async function cargarVideos(checkNew = false) {
     const data = await res.json();
 
     const wrapper = document.getElementById("slides");
+    if (!wrapper) {
+      console.error("❌ Error: Contenedor de slides no encontrado");
+      loader.style.display = "none";
+      return;
+    }
     if (!checkNew) wrapper.innerHTML = "";
 
     let newVideos = [];
@@ -1802,16 +2301,20 @@ async function cargarVideos(checkNew = false) {
         const link = row[1];
         const descripcion = row[4] || "";
         const id = row[5];
-        newVideos.push({ title: titulo, link, desc: descripcion, id });
+        if (titulo && link && id) { // 🔥 FIX8: Validar datos para evitar videos inválidos
+          newVideos.push({ title: titulo, link, desc: descripcion, id });
+        }
       });
+    } else {
+      console.warn("⚠️ Advertencia: No se recibieron datos válidos de videos");
     }
 
-    // ⚡ Precargamos primero los comentarios del PRIMER video y los mostramos de inmediato
+    // ⚡ Precargamos primero los comentarios del PRIMER video
     if (!checkNew && newVideos.length > 0) {
       const primerVideoId = newVideos[0].id;
-      await cargarComentarios(primerVideoId, true); // <-- render inmediato
+      await cargarComentarios(primerVideoId, true);
+      console.log("✅ Comentarios del primer video cargados");
 
-      // 🔹 Luego precargamos el resto de comentarios sin bloquear la carga de videos
       const videosRestantes = newVideos.slice(1);
       if (videosRestantes.length > 0) {
         Promise.all(videosRestantes.map(v => cargarComentarios(v.id, false)))
@@ -1819,79 +2322,170 @@ async function cargarVideos(checkNew = false) {
       }
     }
 
-    // ⚡ Ahora mostramos los videos (los comentarios del primero ya están listos)
+    // ⚡ Mostramos los videos
     if (!checkNew) {
       newVideos.forEach(v => {
         wrapper.appendChild(createSlide(v.title, v.link, v.desc, v.id));
       });
     }
 
-    // 🔥 Eliminación silenciosa (solo en modo checkNew)
+    // 🔥 FIX8: Eliminación silenciosa sin afectar slide activo
     if (checkNew) {
       const linksActivos = newVideos.map(v => v.link);
+      const activeSlide = document.querySelector('.swiper-slide-active');
+      const activeLink = activeSlide ? activeSlide.querySelector('.player-card')?.dataset.embed : null;
+      
       Array.from(wrapper.children).forEach(slide => {
         const card = slide.querySelector(".player-card");
         if (card && !linksActivos.includes(card.dataset.embed)) {
-          wrapper.removeChild(slide);
-          if (swiper) swiper.update();
+          if (slide === activeSlide) {
+            // 🔥 FIX8: Si el slide eliminado es el activo, pasar al siguiente slide
+            if (swiper) {
+              swiper.removeSlide(swiper.activeIndex);
+              console.log("✅ Slide activo eliminado, pasando al siguiente");
+              swiper.slideNext(0); // Transición inmediata al siguiente slide
+            }
+          } else {
+            // 🔥 FIX8: Eliminar solo slides no activos, sin actualizar Swiper inmediatamente
+            wrapper.removeChild(slide);
+            console.log("✅ Slide no activo eliminado silenciosamente");
+          }
         }
       });
+      // 🔥 FIX8: Actualizar Swiper solo después de todas las eliminaciones
+      if (swiper) {
+        swiper.update();
+        console.log("✅ Swiper actualizado tras eliminación");
+      }
     }
 
     // 🛎️ Notificaciones de nuevos videos
     if (checkNew && lastVideos.length > 0) { 
       const nuevos = newVideos.filter(v => !lastVideos.find(old => old.link === v.link));
       if (nuevos.length > 0) {
-        notifications.unshift(...nuevos);
-        renderNotifications();
+        // 🔥 FIX8: Filtrar notificaciones vacías/inválidas antes de añadir
+        const validNuevos = nuevos.filter(v => v.title && v.link && v.id);
+        if (validNuevos.length > 0) {
+          notifications.unshift(...validNuevos);
+          renderNotifications();
+          console.log(`✅ ${validNuevos.length} nuevas notificaciones válidas añadidas`);
+        } else {
+          console.warn("⚠️ No se añadieron notificaciones: datos inválidos");
+        }
       }
     }
 
     lastVideos = newVideos;
 
-    // ✅ Inicializamos Swiper solo cuando TODO (videos + comentarios del primero) esté listo
-    if (!checkNew) {
-      if (swiper) swiper.destroy(true, true);
-      swiper = new Swiper(".swiper", {
+    // ✅ Inicializamos Swiper
+  // Dentro de cargarVideos, reemplaza el bloque de inicialización de Swiper con este:
+// Reemplaza solo el bloque de inicialización de Swiper dentro de cargarVideos
+// Reemplaza solo el bloque de inicialización de Swiper dentro de cargarVideos
+if (!checkNew) {
+    if (swiper) swiper.destroy(true, true);
+    swiper = new Swiper(".swiper", {
         loop: true,
         direction: "vertical",
         slidesPerView: 1,
         spaceBetween: 10,
         pagination: false,
         on: {
-          init() {
-            updateFixedTitle(this);
-            activarSwipeParaBorrar();
+            init() {
+                updateFixedTitle(this);
+                activarSwipeParaBorrar();
+                const videoId = getActiveVideoId();
+                if (videoId) renderComentarios(videoId);
+                console.log("✅ Swiper inicializado");
+                // Inicializar el primer video con reproducción automática
+                const activeCard = this.slides[this.activeIndex].querySelector('.player-card');
+                if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
+                    mountIframe(activeCard, true);
+                }
+            },
+            slideChange() {
+                cleanupIframesExceptActiveAndAdjacent();
+                updateFixedTitle(this);
+                activarSwipeParaBorrar();
+                const videoId = getActiveVideoId();
+                if (videoId) {
+                    if (!comentariosPorVideo[videoId]) {
+                        cargarComentarios(videoId, true);
+                    } else {
+                        renderComentarios(videoId);
+                    }
+                }
+            },
+            slideChangeTransitionEnd() {
+                updateFixedTitle(this);
+                const activeIndex = this.activeIndex;
+                const prevIndex = (activeIndex - 1 + this.slides.length) % this.slides.length;
+                const nextIndex = (activeIndex + 1) % this.slides.length;
 
-            // 🔹 Mostrar comentarios del video activo (ya precargados)
-            const videoId = getActiveVideoId();
-            if (videoId) renderComentarios(videoId);
-          },
-          slideChange() {
-            cleanupIframesExceptActive();
-            updateFixedTitle(this);
-            activarSwipeParaBorrar();
+                // Manejar active
+                const activeCard = this.slides[activeIndex].querySelector('.player-card');
+                if (activeCard) {
+                    const src = activeCard.dataset.embed;
+                    if (!activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
+                        mountIframe(activeCard, true); // Montar con reproducción automática
+                    } else {
+                        const player = players[src];
+                        if (player) {
+                            // Asegurar que el video activo se reproduzca
+                            if (typeof player.playVideo === 'function') {
+                                player.playVideo();
+                            } else if (typeof player.play === 'function') {
+                                player.play().catch(e => console.warn("Error al reproducir:", e));
+                            }
+                            // Actualizar estado del botón central
+                            const centerPlayPauseBtn = activeCard.querySelector('.center-play-pause-btn');
+                            if (centerPlayPauseBtn) {
+                                centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                                centerPlayPauseBtn.style.opacity = 0;
+                            }
+                        }
+                    }
+                }
 
-            // 🔹 Mostrar comentarios instantáneamente al cambiar video
-            const videoId = getActiveVideoId();
-            if (videoId) renderComentarios(videoId);
-          },
-          slideChangeTransitionEnd() {
-            updateFixedTitle(this);
-          }
+                // Precargar prev
+                const prevCard = this.slides[prevIndex].querySelector('.player-card');
+                if (prevCard && !prevCard.querySelector("iframe") && !prevCard.querySelector("video")) {
+                    mountIframe(prevCard, false); // Precargar sin reproducir
+                } else if (prevCard) {
+                    const centerPlayPauseBtn = prevCard.querySelector('.center-play-pause-btn');
+                    if (centerPlayPauseBtn) {
+                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        centerPlayPauseBtn.style.opacity = 1;
+                    }
+                }
+
+                // Precargar next
+                const nextCard = this.slides[nextIndex].querySelector('.player-card');
+                if (nextCard && !nextCard.querySelector("iframe") && !nextCard.querySelector("video")) {
+                    mountIframe(nextCard, false); // Precargar sin reproducir
+                } else if (nextCard) {
+                    const centerPlayPauseBtn = nextCard.querySelector('.center-play-pause-btn');
+                    if (centerPlayPauseBtn) {
+                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        centerPlayPauseBtn.style.opacity = 1;
+                    }
+                }
+
+                const videoId = getActiveVideoId();
+                if (videoId && comentariosPorVideo[videoId]) {
+                    renderComentarios(videoId);
+                }
+            }
         },
-      });
+    });
 
-      cleanupIframesExceptActive();
-      updateFixedTitle(swiper);
-      activarSwipeParaBorrar();
-
-      // 🔹 Mostrar comentarios para el primer video (ya están en caché)
-      const videoId = getActiveVideoId();
-      if (videoId) renderComentarios(videoId);
-    }
+    cleanupIframesExceptActiveAndAdjacent();
+    updateFixedTitle(swiper);
+    activarSwipeParaBorrar();
+    const videoId = getActiveVideoId();
+    if (videoId) renderComentarios(videoId);
+}
   } catch (e) {
-    console.error("Error cargando videos:", e);
+    console.error("❌ Error cargando videos:", e);
   } finally {
     loader.style.display = "none";
   }
@@ -1899,8 +2493,8 @@ async function cargarVideos(checkNew = false) {
 
 
 
-
-function activarSwipeParaBorrar() {
+        
+        function activarSwipeParaBorrar() {
   const comentarios = document.querySelectorAll(".comentario-propio"); // clase para tus comentarios
 
   comentarios.forEach(comentario => {
@@ -1924,8 +2518,6 @@ function activarSwipeParaBorrar() {
 }
 
 
-
-
 // === AUTO REFRESCO EN SEGUNDO PLANO ===
 setInterval(() => {
   cargarVideos(true); // solo refresca notificaciones, no toca el slider
@@ -1935,9 +2527,6 @@ setInterval(() => {
     </script>
 </body>
 </html>
-
-
-
 
 
 
