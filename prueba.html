@@ -81,7 +81,7 @@
     <div class="preview"><img id="previewImg" src="" /></div>
 
     <label>Tu nombre</label>
-    <input type="text" id="autor" placeholder="Tu nombreD" />
+    <input type="text" id="autor" placeholder="Tu nombre" />
 
     <label>Tu correo</label>
     <input type="email" id="correo" placeholder="Correo del autor" />
@@ -101,7 +101,7 @@
 
     let base64Imagen = "";
 
-    // Mostrar vista previa
+    // Vista previa de la imagen
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
       if (file) {
@@ -143,26 +143,21 @@
       try {
         const res = await fetch(scriptURL, {
           method: "POST",
+          mode: "no-cors", // ✅ evita errores CORS en entornos locales
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
-        const result = await res.json();
+        // Como no-cors no permite leer la respuesta, asumimos éxito si no hubo error
+        mensaje.textContent = "✅ Anuncio enviado al servidor (verifica en la hoja de cálculo).";
+        mensaje.style.color = "green";
 
-        if (result.status === "success") {
-          mensaje.innerHTML = `✅ Anuncio publicado correctamente.<br>🆔 ID: ${result.id}`;
-          mensaje.style.color = "green";
-
-          document.getElementById("titulo").value = "";
-          document.getElementById("descripcion").value = "";
-          document.getElementById("autor").value = "";
-          document.getElementById("correo").value = "";
-          previewImg.src = "";
-          base64Imagen = "";
-        } else {
-          mensaje.textContent = "❌ Error al guardar: " + result.message;
-          mensaje.style.color = "red";
-        }
+        document.getElementById("titulo").value = "";
+        document.getElementById("descripcion").value = "";
+        document.getElementById("autor").value = "";
+        document.getElementById("correo").value = "";
+        previewImg.src = "";
+        base64Imagen = "";
       } catch (err) {
         mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
         mensaje.style.color = "red";
