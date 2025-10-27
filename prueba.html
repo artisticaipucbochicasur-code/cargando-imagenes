@@ -101,12 +101,13 @@
 
     let base64Imagen = "";
 
-    // Vista previa de la imagen
+    // Vista previa y conversión a Base64
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function (e) {
+          // Quitamos el encabezado data:image/jpeg;base64,
           base64Imagen = e.target.result.split(",")[1];
           previewImg.src = e.target.result;
         };
@@ -130,28 +131,27 @@
       mensaje.textContent = "⏳ Subiendo anuncio...";
       mensaje.style.color = "#0077cc";
 
-      const data = {
-        accion: "guardar",
-        tipo: "anuncio",
-        titulo,
-        descripcion,
-        imagen: base64Imagen,
-        autor,
-        correo
-      };
+      // Enviar datos como FormData (Apps Script los recibe correctamente)
+      const formData = new FormData();
+      formData.append("accion", "guardar");
+      formData.append("tipo", "anuncio");
+      formData.append("titulo", titulo);
+      formData.append("descripcion", descripcion);
+      formData.append("imagen", base64Imagen);
+      formData.append("autor", autor);
+      formData.append("correo", correo);
 
       try {
-        const res = await fetch(scriptURL, {
+        const response = await fetch(scriptURL, {
           method: "POST",
-          mode: "no-cors", // ✅ evita errores CORS en entornos locales
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          body: formData
         });
 
-        // Como no-cors no permite leer la respuesta, asumimos éxito si no hubo error
-        mensaje.textContent = "✅ Anuncio enviado al servidor (verifica en la hoja de cálculo).";
+        const result = await response.text();
+        mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
         mensaje.style.color = "green";
 
+        // Limpiar formulario
         document.getElementById("titulo").value = "";
         document.getElementById("descripcion").value = "";
         document.getElementById("autor").value = "";
@@ -162,6 +162,7 @@
         mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
         mensaje.style.color = "red";
       }
+
       btnPublicar.disabled = false;
     });
   </script>
