@@ -2,1822 +2,267 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    />
-    <title>Galería de Videos</title>
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- PWA y Iconos para Android e iOS -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Iconos para Android (Chrome) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" onerror="console.log('Error cargando icon-192.png')">
+
+    <!-- Meta tags para iOS (Safari) -->
+    <link rel="apple-touch-icon" href="/apple-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DECOM">
+
+    <!-- Meta para color de barra de estado en Android/iOS -->
+    <meta name="theme-color" content="#111111">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <title>DECOM - Fotos y Videos</title>
+
     <style>
-        :root {
-            --bg1: #000;
-            --bg2: #000;
-            --text: #fff;
-            --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-        }
-
-        html, body {
-            height: 100%;
-        }
-
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, var(--bg1), var(--bg2));
-            font-family: "Segoe UI", Arial, sans-serif;
-            color: var(--text);
-            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+            overflow-x: hidden;
         }
-
-   /* Botones flotantes */
-.floating-buttons {
-    position: fixed;
-    bottom: 90px;
-    right: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    z-index: 2000;
-}
-.fab {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-.fab.danger {}
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
-}
-.modal-actions button {
-    flex: 1;
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-}
-.modal.hidden { display: none; }
-.modal-content {
-    background: #111;
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    color: #fff;
-}
-.modal-content input { padding: 6px; }
-
-/* Progreso flotante */
-.progress-toast {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: rgba(0,0,0,0.8);
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 6px;
-    z-index: 4000;
-    width: 200px;
-}
-.progress-toast.hidden { display: none; }
-.progress-toast .bar {
-    height: 4px;
-    background: #28a745;
-    width: 0%;
-    margin-bottom: 6px;
-    transition: width 0.3s ease;
-}
-
-.swiper {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-}
-
-.swiper-slide {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    position: relative;
-    background: #000;
-}
-
-.player-card {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background: #000;
-    overflow: hidden;
-    box-shadow: var(--card-shadow);
-    border-radius: 10px;
-}
-
-.poster {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #111;
-    background-size: cover;
-    background-position: center center;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-}
-
-.play-btn {
-    display: grid;
-    place-items: center;
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(2px);
-    font-size: 28px;
-    line-height: 1;
-    border: 2px solid #fff;
-}
-
-.player-iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: #000;
-}
-
-/* Truncamiento para el contenedor del título y la descripción */
-#video-title-fixed .text-container {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2; /* Truncar a 2 líneas por defecto */
-    transition: -webkit-line-clamp 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    max-height: 4em;
-    line-height: 1.2;
-}
-
-#video-title-fixed .text-container.expanded {
-    -webkit-line-clamp: unset;
-    cursor: pointer;
-    overflow-y: auto;
-    max-height: 60vh;
-    padding-right: 15px;
-}
-
-#video-title-fixed .toggle-text {
-    color: #ccc;
-    font-size: 12px;
-    font-weight: bold;
-    user-select: none;
-    display: inline-block;
-    margin-left: 6px;
-    cursor: pointer;
-    background: none !important; /* 👈 sin fondo */
-    padding: 0;
-}
-
-
-#video-title-fixed {
-    position: absolute;
-    top: 0;          /* 👈 ya lo tienes, aquí lo dejamos */
-    left: 0;         /* alineado a la izquierda */
-    width: 100%;     /* ocupa todo el ancho */
-    max-width: 100%; /* no limitar */
-    z-index: 1000;
-    background: rgba(0,0,0,0.3);
-    transition: opacity 0.18s ease;
-    opacity: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 6px 10px;
-    margin: 0;
-    border-bottom-left-radius: 6px; /* 👌 opcional */
-    border-bottom-right-radius: 6px; /* 👌 opcional */
-}
-
-
-
-
-#video-title-fixed .video-title {
-    font-size: 18px;
-    font-weight: 600;
-    text-align: left;
-    color: #f1f1f1;
-}
-
-#video-title-fixed .video-desc {
-    font-size: 14px;
-    opacity: 0.85;
-    text-align: left;
-    color: #ddd;
-}
-
-/* 🔔 Notificaciones */
-#notification-wrapper {
-    position: fixed;
-    right: 20px;
-    bottom: 200px;
-    z-index: 5000;
-}
-
-#notification-btn {
-    position: relative;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-
-#notification-count {
-    display: none;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: red;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 50%;
-}
-
-#notification-list {
-    position: absolute;
-    top: 55px;
-    right: 0;
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 10px;
-    width: 260px;
-    max-height: 320px;
-    overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-}
-#notification-list.hidden { display: none; }
-#notification-list div {
-    padding: 10px;
-    border-bottom: 1px solid #333;
-    cursor: pointer;
-    color: #ddd;
-}
-#notification-list div:hover {
-    background: #333;
-}
-
-#loader {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    z-index: 10;
-    color: #fff;
-    text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-#loader .spinner {
-    display: inline-block;
-    animation: spin 1.1s linear infinite;
-}
-
-.touch-blocker {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: none;
-}
-
-.controls-bar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 5px 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 5;
-    transition: opacity 0.3s ease;
-    opacity: 0;
-}
-
-.player-card:hover .controls-bar {
-    opacity: 1;
-}
-
-.center-play-pause-btn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: grid;
-    place-items: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.55);
-    border: 2px solid #fff;
-    color: #fff;
-    font-size: 28px;
-    cursor: pointer;
-    z-index: 6;
-    transition: opacity 0.3s ease;
-    opacity: 0;
-}
-
-.player-card:hover .center-play-pause-btn {
-    opacity: 1;
-}
-
-.play-pause-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.progress-bar {
-    flex-grow: 1;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.3);
-    cursor: pointer;
-}
-.progress {
-    height: 100%;
-    width: 0%;
-    background: #ff0000;
-}
-
-.volume-control {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.volume-control input[type="range"] {
-    width: 60px;
-    -webkit-appearance: none;
-    background: transparent;
-}
-.volume-control input[type="range"]::-webkit-slider-runnable-track {
-    height: 3px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 1.5px;
-}
-.volume-control input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 12px;
-    width: 12px;
-    border-radius: 50%;
-    background: #fff;
-    margin-top: -4.5px;
-}
-.volume-icon {
-    font-size: 20px;
-}
-
-.time {
-    font-size: 12px;
-    color: #fff;
-}
-
-/* Contenedor de comentarios */
-.comments-overlay-container {
-  position: fixed;
-  bottom: 90px; /* 👈 ahora justo arriba de la barra de escribir */
-  left: 10px;
-  width: calc(80% - 20px);
-  background: rgba(0, 0, 0, 0.2); /* más transparente */
-  color: #eee;
-  padding: 8px;
-  border-radius: 5px;
-  box-sizing: border-box;
-  z-index: 998;
-  overflow-y: auto;
-  transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease;
-  max-height: 4em;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-
-  /* expandido */
-.comments-overlay-container.expanded {
-  max-height: 70vh;
-}
-    /* Estilos para la lista de comentarios */
-    .comments-overlay-container ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    /* Estilos para cada comentario individual */
-    .comments-overlay-container li {
-        font-size: 0.8rem;
-        line-height: 1.2;
-        margin-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding-bottom: 8px;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-    }
-
-    .comments-overlay-container li:last-child {
-      border-bottom: none;
-    }
-    
-    /* Estilo para los comentarios que se pueden borrar */
-    .comments-overlay-container li.deletable {
-        cursor: pointer;
-    }
-    
-    /* Contenedor del botón de borrado */
-    .delete-btn-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 100px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #e74c3c;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 0; 
-    }
-    
-    /* Botón de borrado en sí mismo */
-    .delete-btn {
-        color: white;
-        font-weight: bold;
-        padding: 10px;
-        cursor: pointer;
-        user-select: none;
-    }
-    
-    /* El comentario se desliza */
-    .comment-content {
-      width: 100%;
-      padding-left: 10px;
-      padding-right: 10px;
-      box-sizing: border-box;
-      transition: transform 0.3s ease;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .comment-content.swiped {
-      transform: translateX(100px);
-    }
-    
-    .delete-btn-container.visible {
-        transform: translateX(0);
-    }
-    
-    /* Clase para ocultar los overlays */
-.hidden-overlay {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0.3s;
-}
-
-
-
-    /* Estilos del nuevo contador de comentarios */
- .comments-counter {
-    position: fixed;
-    bottom: 135px;
-    right: 10px;
-    background: transparent;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 60px;
-    font-size: 14px;
-    font-weight: bold;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    cursor: pointer;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-     box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-
-    
-    .comments-counter .icon {
-        font-size: 1.5rem;
-        line-height: 1;
-    }
-    
-    .comments-counter .count {
-        font-size: 0.9rem;
-    }
-
-/* Barra de entrada de comentarios */
-.comment-input-container {
-  position: fixed;
-  bottom: 39px;
-  left: 0;
-  width: 100%;
-  background: transparent;
-  padding: 8px 12px;
-  box-sizing: border-box;
-  z-index: 1000;
-}
-
-
-
-    
-    .comment-input-container .send-comment-btn:hover {
-        background: transparent;
-    }
-
-  /* ✅ Nuevo diseño: óvalo completo */
-.comment-input-wrapper {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  border: 1px solid #888;
-  border-radius: 25px;   /* ovalado completo */
-  width: 95%;            /* 👈 solo ocupa el 80% */
-  margin: 0 auto;        /* 👈 centrado */
-  padding: 4px 8px;      /* 👈 menos alto */
-}
-
-
-.comment-input-wrapper input {
-  flex-grow: 1;
-  background: transparent;
-  border: none;          /* 👈 quita borde extra */
-  outline: none;
-  padding: 6px 8px;      /* 👈 más compacto */
-  font-size: 0.9rem;
-  color: white;
-}
-
-.comment-input-wrapper input::placeholder {
-  color: rgba(255,255,255,0.7);
-}
-
-.comment-input-wrapper button {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 1.2rem;    /* 👈 tamaño justo */
-  cursor: pointer;
-  padding: 4px 6px;
-}
-/* Oculta el modal por defecto */
-.hidden {
-  display: none !important;
-}
-
-/* Fondo oscuro al abrir modal */
-#search-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: flex-start; /* 👈 arriba */
-  justify-content: center;
-  padding-top: 40px;       /* 👈 separación desde arriba */
-  z-index: 9999;
-}
-
-
-/* Contenedor del modal */
-#search-modal .modal-content {
-  background: #111;
-  color: #fff;
-  padding: 15px;
-  border-radius: 8px;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-/* Input */
-#search-input {
-  width: 100%;
-  padding: 6px;
-  margin-bottom: 10px;
-  background: #222;
-  border: 1px solid #444;
-  color: white;
-  border-radius: 5px;
-}
-
-/* Lista de resultados */
-#search-results {
-  max-height: 150px;
-  overflow-y: auto;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-#search-results li {
-  padding: 8px;
-  cursor: pointer;
-  border-bottom: 1px solid #333;
-}
-
-#search-results li:hover {
-  background: #333;
-}
-
-/* Botón cerrar */
-#search-close {
-  background: #444;
-  color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-/* Clase para resaltar título al saltar desde buscador */
-/* Resaltado temporal para el contenedor de título */
-#video-title-fixed.highlight-container {
-  background: rgba(77, 163, 255, 0.35); /* azul suave translúcido */
-  transition: background 0.5s ease;
-}
-
-.refresh-btn {
-    position: fixed;
-    bottom: 250px; /* 🔹 Un poco más arriba que la campana */
-    right: 18px;
-    width: 40px; /* Igual que .fab */
-    height: 40px; /* Igual que .fab */
-    border-radius: 50%;
-    border: none;
-    background: transparent; /* Fondo transparente */
-    color: white; /* Ícono blanco */
-    font-size: 24px; /* Igual que .fab */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Igual que .fab */
-    z-index: 2000;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.refresh-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-}
-
-.social-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #222;
-  color: white;
-  padding: 10px 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.app-name {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.nav-icons {
-  display: flex;
-  gap: 15px;
-}
-
-.nav-icons button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.nav-icons button:hover {
-  color: #1e90ff;
-}
-
-.nav-icons button.active {
-  color: #1e90ff;
-}
-
-body {
-  padding-top: 60px; /* Espacio para el encabezado fijo */
-}
-        
+        #socialHeader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10001;
+            padding: 8px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        #socialHeader h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: center;
+            color: #fff;
+        }
+        #socialHeader nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        #socialHeader a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        #socialHeader a.active {
+            background: #fff;
+            color: #111;
+        }
+        .swiper {
+            width: 100%;
+            height: 100vh;
+            margin-top: 80px; /* Espacio para el header */
+        }
+        .swiper-slide {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+        }
+        .player-card, .image-card {
+            width: 90%;
+            height: 80%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .poster {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .play-btn {
+            font-size: 50px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .hidden-overlay {
+            display: none !important;
+        }
+        /* ... (agrega otros estilos de sliderVideos.html aquí) ... */
     </style>
 </head>
 <body>
+    <header id="socialHeader">
+        <h1>DECOM</h1>
+        <nav>
+            <a href="#" class="tab-link active" data-tab="fotos">Imágenes</a>
+            <a href="#" class="tab-link" data-tab="videos">Videos</a>
+            <a href="#" id="publishBtn">Publicar</a>
+        </nav>
+    </header>
 
-<header class="social-header">
-  <div class="app-name">DECOM</div>
-  <nav class="nav-icons">
-    <button id="publicar-btn" title="Publicar">
-      <i class="fas fa-plus-circle"></i>
-    </button>
-    <button id="anuncios-btn" title="Anuncios">
-      <i class="fas fa-bullhorn"></i>
-    </button>
-    <button id="videos-btn" title="Videos" class="active">
-      <i class="fas fa-video"></i>
-    </button>
-  </nav>
-</header>
-
-    
-<!-- 🔍 Modal de búsqueda -->
-<div id="search-modal" class="hidden">
-  <div class="modal-content">
-    <h3 style="margin:0 0 10px; font-size:18px;">Buscar video</h3>
-    <input type="text" id="search-input" placeholder="Escribe el título...">
-    <ul id="search-results"></ul>
-    <div class="modal-actions" style="margin-top:10px; text-align:right;">
-      <button id="search-close">Cerrar</button>
+    <div class="swiper">
+        <div id="slides" class="swiper-wrapper"></div>
     </div>
-  </div>
-</div>
 
-<!-- 🔄 Botón de actualizar -->
-<button id="refreshBtn" class="refresh-btn" title="Actualizar página">
-  <i class="fas fa-sync-alt"></i>
-</button>
+    <!-- Otras secciones (comentarios, notificaciones, etc.) de sliderVideos.html aquí -->
 
-    
-<div class="comments-overlay-container hidden-overlay" id="commentsOverlay">
-  <ul id="commentsList"></ul>
-</div>
-
-<div class="comments-counter hidden-overlay" id="commentsCounter">
-  <span class="icon">💬</span>
-  <span class="count" id="commentCountValue">0</span>
-</div>
-
-<div class="comment-input-container hidden-overlay">
-  <div class="comment-input-wrapper">
-    <input type="text" id="commentInput" placeholder="Escribe un comentario...">
-    <button class="send-comment-btn"><i class="fas fa-paper-plane"></i></button>
-  </div>
-</div>
-
-
-    
-<!-- Notificaciones -->
-<div id="notification-wrapper">
-  <button id="notification-btn">
-    <i class="fas fa-bell"></i>
-    <span id="notification-count"></span>
-  </button>
-  <div id="notification-list" class="hidden"></div>
-</div>
-
-    
-<div id="custom-alert-modal" class="modal hidden">
-  <div class="modal-content">
-    <h3>¡Atención!</h3>
-    <p id="custom-alert-message"></p>
-    <div class="modal-actions">
-      <button id="custom-alert-ok" style="background:#007bff; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Aceptar</button>
-    </div>
-  </div>
-</div>
-<!-- Modal de eliminación -->
-<div id="delete-modal" class="modal hidden">
-  <div class="modal-content">
-    <h3>¿Eliminar Video?</h3>
-    <p id="delete-video-title">¿Seguro que deseas eliminar este video?</p>
-    <div class="modal-actions">
-      <button id="delete-confirm" style="background:#dc3545; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Eliminar</button>
-      <button id="delete-cancel" style="background:#444; color:white; padding:8px; border:none; border-radius:6px; cursor:pointer;">Cancelar</button>
-    </div>
-  </div>
-</div>
-<!-- BOTONES flotantes -->
-   <div class="floating-buttons">
-  <button id="btn-delete" class="fab danger"><i class="fas fa-trash"></i></button>
-</div>
-
-  
-
-<div class="swiper">
-  <div class="swiper-wrapper" id="slides">
-    <!-- aquí solo van los slides -->
-  </div>
-
-  <!-- 👇 contenedor global del título, fuera de los slides -->
-  <div id="video-title-fixed">
-    <div class="video-title"></div>
-    <div class="video-desc"></div>
-  </div>
-</div>
-
-
-
-    <div id="loader"><span class="spinner">⏳</span></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-
-function navigateTo(page) {
-  if (typeof window.AppInventor !== "undefined" && window.AppInventor.setWebViewString) {
-    window.AppInventor.setWebViewString(page);
-    console.log("✅ Navegando a:", page);
-  } else {
-    window.location.href = page;
-    console.log("✅ Navegación directa a:", page);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("publicar-btn").addEventListener("click", () => {
-    navigateTo("https://artisticaipucbochicasur-code.github.io/Subir-Videos/upload.html");
-  });
-  document.getElementById("anuncios-btn").addEventListener("click", () => {
-    navigateTo("https://artisticaipucbochicasur-code.github.io/pase-de-fotos-vertical/fotos.html");
-  });
-  document.getElementById("videos-btn").addEventListener("click", () => {
-    navigateTo("https://artisticaipucbochicasur-code.github.io/slider-de-videos/sliderVideos.html");
-  });
-});
-
-        
-        const SCRIPT_URL =
-            "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
-
-// === Comentarios móviles ===
-const commentsOverlay = document.getElementById('commentsOverlay');
-const commentsCounter = document.getElementById('commentsCounter');
-const commentCountValue = document.getElementById('commentCountValue');
-const commentsList = document.getElementById('commentsList');
-const commentInputContainer = document.querySelector('.comment-input-container');
-const commentInput = document.getElementById('commentInput');
-const sendCommentBtn = document.querySelector('.send-comment-btn');
-const notificationWrapper = document.getElementById('notification-wrapper');
-const notificationList = document.getElementById('notification-list');
-
-let comentariosPorVideo = {}; // videoId: [ {autor, correo, fecha, comentario} ]
-let lastTapTime = 0;
-let activeComment = null;
-let startX = 0;
-let isSwiping = false;
-
-const refreshBtn = document.getElementById("refreshBtn");
-
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", () => {
-    location.reload(); // 🔄 Recarga la página completamente
-  });
-}
-
-
-        
-document.addEventListener("DOMContentLoaded", async () => {
-  const commentsOverlay = document.getElementById("commentsOverlay");
-  const commentsCounter = document.getElementById("commentsCounter");
-  const commentInputContainer = document.querySelector(".comment-input-container");
-
-  // Todo empieza oculto
-  commentsOverlay.classList.add("hidden-overlay");
-  commentsCounter.classList.add("hidden-overlay");
-  commentInputContainer.classList.add("hidden-overlay");
-
-  try {
-    const usuario = await getUsuarioDataFromUrl();
-    const videos = await obtenerListaVideos();
-
-    // Carga solo los slides del slider rápido
-    await cargarVideos(videos);
-
-    // 🔹 Precargamos todos los comentarios en segundo plano
-    await precargarComentariosTodos(videos);
-
-    // 🔹 Solo ahora mostramos la interfaz de comentarios
-    commentsOverlay.classList.remove("hidden-overlay");
-    commentsCounter.classList.remove("hidden-overlay");
-    commentInputContainer.classList.remove("hidden-overlay");
-
-    // 🔹 Renderizamos los comentarios del primer video
-    if (videos.length > 0) {
-      const primerVideoId = getActiveVideoId() || videos[0].id;
-      renderComentarios(primerVideoId);
-    }
-
-    console.log("✅ Todos los comentarios precargados, interfaz visible.");
-  } catch (e) {
-    console.error("❌ Error al inicializar:", e);
-    commentsOverlay.classList.remove("hidden-overlay");
-    commentsCounter.classList.remove("hidden-overlay");
-    commentInputContainer.classList.remove("hidden-overlay");
-  }
-
-  // ⬇️⬇️ Buscador integrado (App Inventor + modal emergente) ⬇️⬇️
-
-  const searchModal = document.getElementById("search-modal");
-  const searchInput = document.getElementById("search-input");
-  const searchResults = document.getElementById("search-results");
-  const searchClose = document.getElementById("search-close");
-
-  function openSearchModal() {
-    searchModal.classList.remove("hidden");
-    searchInput.value = "";
-    searchResults.innerHTML = "";
-    searchInput.focus();
-  }
-
-  function closeSearchModal() {
-    searchModal.classList.add("hidden");
-  }
-
- searchInput.addEventListener("input", () => {
-  const query = searchInput.value.toLowerCase().trim(); // 👈 normalizamos
-  searchResults.innerHTML = "";
-
-  if (!query) return;
-
-  // 👇 normalizamos también los títulos para comparar sin importar mayúsculas/espacios
-  const matches = lastVideos.filter(v =>
-    v.title.toLowerCase().trim().includes(query)
-  );
-
-  if (matches.length === 0) {
-    searchResults.innerHTML = "<li style='padding:6px; color:#aaa;'>Sin resultados</li>";
-  } else {
-    matches.forEach(video => {
-      const li = document.createElement("li");
-      li.textContent = video.title;
-      li.style.padding = "6px";
-      li.style.cursor = "pointer";
-      li.onmouseover = () => (li.style.background = "#333");
-      li.onmouseout = () => (li.style.background = "transparent");
-    li.onclick = () => {
-  const index = lastVideos.findIndex(v => v.id === video.id);
-  if (index !== -1 && swiper) {
-    swiper.slideToLoop(index, 0);
-
-    // 👇 Esperamos a que el swiper cambie de slide y resaltamos el título
-   setTimeout(() => {
-  const container = document.getElementById("video-title-fixed");
-  if (container) {
-    container.classList.add("highlight-container");
-    // Quitar el resaltado después de 3 segundos
-    setTimeout(() => {
-      container.classList.remove("highlight-container");
-    }, 3000);
-  }
-}, 300);
- // delay pequeño para asegurar que se actualice el título
-  }
-  closeSearchModal();
-};
-
-      searchResults.appendChild(li);
-    });
-  }
-});
-
-
-
-
-
-  searchClose.onclick = closeSearchModal;
-
-  // 🔗 Integración con App Inventor (muestra buscador cuando recibe "buscar")
-  setInterval(() => {
-    try {
-      if (typeof window.AppInventor !== "undefined") {
-        const msg = AppInventor.getWebViewString();
-
-        if (msg === "buscar") {
-          openSearchModal();
-          AppInventor.setWebViewString(""); // reset
-        }
-
-        // 👇 Nuevo: comando "pausa"
-        if (msg === "pausa") {
-          console.log("⏸ Recibido comando pausa desde App Inventor");
-
-          const activeCard = document.querySelector(".swiper-slide-active .player-card");
-          if (activeCard) {
-            const src = activeCard.dataset.embed;
-            const player = players[src];
-
-            if (player) {
-              if (typeof player.pauseVideo === "function") {
-                player.pauseVideo(); // YouTube
-                console.log("YouTube pausado");
-              } else if (typeof player.pause === "function") {
-                player.pause(); // MP4
-                console.log("Video MP4 pausado");
-              }
-            }
-          }
-
-          AppInventor.setWebViewString(""); // reset
-        }
-      }
-    } catch (e) {
-      console.warn("Error leyendo WebViewString:", e);
-    }
-  }, 500);
-});
-
-
-
-// Mostrar/ocultar overlays al tocar el slider
-document.querySelector('.swiper').addEventListener('click', (e) => {
-  // 👉 Evitar que se cierre si se hace click en el título o descripción
-  if (e.target.closest('#video-title-fixed')) {
-    return; // no hacer nada
-  }
-
-  const currentTime = new Date().getTime();
-  if (currentTime - lastTapTime > 300) {
-    commentsOverlay.classList.toggle('hidden-overlay');
-    commentsCounter.classList.toggle('hidden-overlay');
-    commentInputContainer.classList.toggle('hidden-overlay');
-
-    // 🔔 Ocultar botón y lista de notificaciones
-    notificationWrapper.classList.toggle('hidden-overlay');
-    notificationList.classList.add('hidden'); // Cierra la lista si estaba abierta
-
-    // 👇 También alternar el título
-    document.getElementById("video-title-fixed").classList.toggle("hidden-overlay");
-
-    // 🆕 También ocultar/mostrar el botón de actualizar
-    const refreshBtn = document.getElementById("refreshBtn");
-    if (refreshBtn) {
-      refreshBtn.classList.toggle("hidden-overlay");
-    }
-  }
-  lastTapTime = currentTime;
-});
-
-
-
-
-
-
-// === Expandir / Colapsar comentarios ===
-commentsOverlay.addEventListener('click', (e) => {
-  if (!isSwiping) {
-    commentsOverlay.classList.toggle('expanded');
-  }
-  isSwiping = false;
-});
-
-// === Swipe-to-delete en móviles ===
-commentsList.addEventListener('touchstart', (e) => {
-  const commentElement = e.target.closest('li');
-  if (!commentElement) return;
-  const commentData = commentElement.dataset;
-
-  if (normalizeText(commentData.correo) === normalizeText(usuarioCorreo)) {
-    startX = e.touches[0].clientX;
-    activeComment = commentElement;
-    activeComment.querySelector('.comment-content').style.transition = 'none';
-    isSwiping = false;
-  }
-});
-
-commentsList.addEventListener('touchmove', (e) => {
-  if (!activeComment) return;
-  const currentX = e.touches[0].clientX;
-  const diffX = currentX - startX;
-
-  if (Math.abs(diffX) > 10) isSwiping = true;
-
-  const commentContent = activeComment.querySelector('.comment-content');
-  const deleteBtnContainer = activeComment.querySelector('.delete-btn-container');
-
-  if (diffX > 0) {
-    commentContent.style.transform = `translateX(${diffX}px)`;
-    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(0)`;
-  } else {
-    commentContent.style.transform = `translateX(0)`;
-    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(-100%)`;
-  }
-});
-
-commentsList.addEventListener('touchend', (e) => {
-  if (!activeComment) return;
-  const swipeThreshold = 50;
-  const diffX = e.changedTouches[0].clientX - startX;
-
-  const commentContent = activeComment.querySelector('.comment-content');
-  let deleteBtnContainer = activeComment.querySelector('.delete-btn-container');
-  commentContent.style.transition = 'transform 0.3s ease';
-
-  if (diffX > swipeThreshold) {
-    commentContent.style.transform = `translateX(100px)`;
-    if (!deleteBtnContainer) {
-      deleteBtnContainer = document.createElement('div');
-      deleteBtnContainer.className = 'delete-btn-container';
-      const deleteBtn = document.createElement('div');
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.textContent = 'Borrar';
-      deleteBtnContainer.appendChild(deleteBtn);
-      activeComment.insertBefore(deleteBtnContainer, commentContent);
-      deleteBtnContainer.style.transform = `translateX(0)`;
-
-      deleteBtn.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        const commentData = activeComment.dataset;
-        eliminarComentario(getActiveVideoId(), commentData.texto, commentData.correo);
-      });
-    } else {
-      deleteBtnContainer.style.transform = `translateX(0)`;
-    }
-  } else {
-    commentContent.style.transform = `translateX(0)`;
-    if (deleteBtnContainer) deleteBtnContainer.style.transform = `translateX(-100%)`;
-  }
-  activeComment = null;
-  startX = 0;
-});
-
-// === Obtener el ID del video activo ===
-function getActiveVideoId() {
-  if (!swiper) return null;
-  const activeSlide = swiper.slides[swiper.activeIndex];
-  if (!activeSlide) return null;
-  return activeSlide.dataset.videoid || null;
-}
-
-let hasSentWebViewString = false;
-function sendToAppInventor(value) {
-  if (!hasSentWebViewString && typeof window.AppInventor !== "undefined" && window.AppInventor.setWebViewString) {
-    window.AppInventor.setWebViewString(value);
-    console.log("✅ Enviado a App Inventor:", value);
-    hasSentWebViewString = true;
-    setTimeout(() => { hasSentWebViewString = false; }, 1000); // Resetear bandera después de 1 segundo
-  }
-}
-
-
-
-        
-// 🗂️ Caché de comentarios
-const comentariosCache = {}; // { videoId: [comentarios] }
-
-// === Cargar comentarios desde Google Sheets con caché ===
-// === Cargar comentarios desde Google Sheets con caché ===
-// 🚀 Optimización: evitar fetch innecesarios y permitir forzar recarga
-async function cargarComentarios(videoId, render = true, options = {}) {
-  if (!videoId) return;
-
-  const force = options.force || false;
-
-  // ✅ Si ya tenemos en caché y no forzamos → render instantáneo
-  if (!force && comentariosCache[videoId]) {
-    comentariosPorVideo[videoId] = comentariosCache[videoId];
-    if (render) renderComentarios(videoId);
-    return;
-  }
-
-  // ✅ Si ya tenemos en memoria y no forzamos → usar eso
-  if (!force && comentariosPorVideo[videoId]) {
-    comentariosCache[videoId] = comentariosPorVideo[videoId];
-    if (render) renderComentarios(videoId);
-    return;
-  }
-
-  // ⚡ Si no hay datos o se forzó → fetch directo al servidor (con cache-buster)
-  try {
-    const res = await fetch(
-      `${SCRIPT_URL}?accion=listarComentarios&videoId=${encodeURIComponent(videoId)}&_=${Date.now()}`
-    );
-    const data = await res.json();
-
-    comentariosPorVideo[videoId] = Array.isArray(data.data)
-      ? data.data.map(c => ({
-          autor: c[2] || "Anónimo",
-          comentario: c[1] || "",
-          // 🔹 Formatear fecha siempre a local string
-          fecha: c[4] ? new Date(c[4]).toLocaleString() : "",
-          correo: c[3] || ""
-        }))
-      : [];
-
-    comentariosCache[videoId] = comentariosPorVideo[videoId];
-
-    if (render) renderComentarios(videoId);
-  } catch (e) {
-    console.error("Error cargando comentarios:", e);
-    comentariosPorVideo[videoId] = [];
-    comentariosCache[videoId] = [];
-    if (render) renderComentarios(videoId);
-  }
-}
-
-
-
-// === Renderizar comentarios en el DOM ===
-function renderComentarios(videoId) {
-  if (!videoId) return;
-
-  const lista = comentariosPorVideo[videoId] || [];
-  const commentsList = document.getElementById('commentsList');
-  const commentCountValue = document.getElementById('commentCountValue');
-
-  if (!commentsList || !commentCountValue) {
-    console.error("❌ Error: Contenedor de comentarios o contador no encontrado en el DOM");
-    return;
-  }
-
-  commentsList.innerHTML = '';
-
-  // 🔥 FIX2: Reforzado para siempre mostrar mensaje si length === 0 exacto
-  if (lista.length === 0) {
-    commentsList.innerHTML = '<li>Sé el primero en comentar...</li>';
-    commentCountValue.textContent = "0";
-  } else {
-    // 🔥 FIX13: Invertir el orden de los comentarios para que el más reciente esté arriba
-    const comentariosInvertidos = [...lista].reverse();
-    comentariosInvertidos.forEach(c => {
-      const li = document.createElement('li');
-      li.classList.add('deletable');
-
-      const commentContent = document.createElement('div');
-      commentContent.className = 'comment-content';
-      commentContent.textContent = `${c.autor} (${c.fecha}) - ${c.comentario}`;
-      li.appendChild(commentContent);
-
-      li.dataset.correo = c.correo;
-      li.dataset.texto = c.comentario;
-
-      if (normalizeText(c.correo) === normalizeText(usuarioCorreo)) {
-        const deleteBtnContainer = document.createElement('div');
-        deleteBtnContainer.className = 'delete-btn-container';
-        const deleteBtn = document.createElement('div');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Borrar';
-        deleteBtnContainer.appendChild(deleteBtn);
-        li.appendChild(deleteBtnContainer);
-
-        deleteBtn.addEventListener('click', async (ev) => {
-          ev.stopPropagation();
-          await eliminarComentario(videoId, c.comentario, c.correo);
-          renderComentarios(videoId);
-        });
-      }
-
-      commentsList.appendChild(li);
-    });
-
-    commentCountValue.textContent = lista.length;
-  }
-
-  console.log(`✅ Renderizados ${lista.length} comentarios para video ${videoId} en orden inverso`);
-}
-
-// === Enviar un nuevo comentario ===
-async function enviarComentario() {
-  const texto = commentInput.value.trim();
-  const videoId = getActiveVideoId();
-  if (!texto || !videoId) return;
-
-  sendCommentBtn.disabled = true;
-
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: new URLSearchParams({
-        accion: "agregarComentarioVideo",
-        videoId,
-        comentario: texto,
-        autor: usuarioAutor,
-        correo: usuarioCorreo,
-      })
-    });
-    const data = await res.json();
-
-    if (data.status === "success") {
-      commentInput.value = "";
-      // 🔄 Forzar recarga real desde servidor
-      await cargarComentarios(videoId, true, { force: true });
-
-      // ✅ Actualizar timestamp local y notificar a otros dispositivos
-      ultimaActualizacionComentarios = String(Date.now());
-      // 🚀 Notificar a otros dispositivos
-      notificarCambioComentarios();
-    } else {
-      console.error("❌ No se pudo guardar:", data.message);
-    }
-  } catch (e) {
-    console.error("Error al enviar comentario:", e);
-  } finally {
-    sendCommentBtn.disabled = false;
-  }
-}
-
-
-// === Listeners del input ===
-sendCommentBtn.addEventListener('click', enviarComentario);
-
-commentInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') enviarComentario();
-});
-
-commentInput.addEventListener('focus', () => {
-  document.body.style.transform = `translateY(-50%)`;
-});
-
-// 🔹 Cuando el input baja (pierde foco), se envía automáticamente si tiene texto
-commentInput.addEventListener('blur', () => {
-  document.body.style.transform = `translateY(0)`;
-
-  // Verificar si hay texto para enviar
-  const comentarioTexto = commentInput.value.trim();
-  if (comentarioTexto !== "") {
-    enviarComentario();
-  }
-});
-
-
-
-// === Precargar todos los comentarios al inicio ===
-async function precargarComentariosTodos(videos) {
-  for (const v of videos) {
-    // ⚡ Carga los comentarios pero NO renderiza si no es el video activo
-    await cargarComentarios(v.id, false);
-  }
-  console.log("✅ Todos los comentarios precargados en caché");
-}
-
-// === Eliminar comentario ===
-async function eliminarComentario(videoId, comentario, correo) {
-  if (!videoId || !comentario || !correo) return;
-
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: new URLSearchParams({
-        accion: "eliminarComentario",
-        videoId,
-        comentario,
-        correo
-      })
-    });
-    const data = await res.json();
-
-    if (data.status === "success") {
-      // 🔄 Forzar recarga real desde servidor
-      await cargarComentarios(videoId, true, { force: true });
-
-      // ✅ Actualizar timestamp local y notificar a otros dispositivos
-      ultimaActualizacionComentarios = String(Date.now());
-      // 🚀 Notificar a otros dispositivos
-      notificarCambioComentarios();
-    } else {
-      console.error("❌ No se eliminó:", data.message);
-    }
-  } catch (e) {
-    console.error("Error al eliminar comentario:", e);
-  }
-}
-
-
-// === 🔄 Sincronización de comentarios en tiempo casi real ===
-let ultimaActualizacionComentarios = "";
-
-// Inicializa el timestamp al cargar (evita primer “false positive”)
-async function initSyncComentarios() {
-  try {
-    const res = await fetch(`${SCRIPT_URL}?accion=ultimaActualizacionComentarios&_=${Date.now()}`);
-    const data = await res.json();
-    ultimaActualizacionComentarios = data.timestamp || "";
-  } catch (e) {
-    console.warn("No se pudo inicializar sync de comentarios:", e);
-  }
-}
-document.addEventListener('DOMContentLoaded', initSyncComentarios);
-
-// Verifica en el servidor si hubo cambios (con cache-buster)
-async function verificarComentariosVideos() {
-  try {
-    const res = await fetch(`${SCRIPT_URL}?accion=ultimaActualizacionComentarios&_=${Date.now()}`);
-    const data = await res.json();
-
-    if (data.timestamp && data.timestamp !== ultimaActualizacionComentarios) {
-      ultimaActualizacionComentarios = data.timestamp;
-
-      // 🔥 FIX2: Usar lastVideos para obtener TODOS los videoIds conocidos y recargarlos (sin render, background)
-      const videoIds = lastVideos.map(v => v.id);
-      for (const videoId of videoIds) {
-        await cargarComentarios(videoId, false, { force: true }); // No render, solo caché fresco
-      }
-
-      // Luego, render solo para el activo (con datos frescos)
-      const videoIdActivo = getActiveVideoId();
-      if (videoIdActivo) {
-        renderComentarios(videoIdActivo);
-      }
-    }
-  } catch (err) {
-    console.warn("No se pudo verificar comentarios:", err);
-  }
-}
-
-
-
-
-// Cada 5 segundos verificamos si hubo cambios
-setInterval(verificarComentariosVideos, 5000);
-
-// --- HOOK para disparar verificación inmediata tras alta/baja ---
-function notificarCambioComentarios() {
-  // 🔥 FIX2: Pequeño delay para asegurar que el servidor actualice el timestamp antes del chequeo
-  setTimeout(verificarComentariosVideos, 0);
-}
-
-
-
-
-
-
-// === Cargar comentarios en tiempo real ===
-function iniciarComentariosTiempoReal() {
-  if (comentariosInterval) clearInterval(comentariosInterval);
-
-  const videoId = getActiveVideoId();
-  if (!videoId) return;
-
-  cargarComentarios(videoId);
-
-  comentariosInterval = setInterval(() => {
-    const idActual = getActiveVideoId();
-    if (idActual) cargarComentarios(idActual);
-  }, 3000);
-}
-
-// === Utilidad para normalizar texto/correos ===
-function normalizeText(text) {
-  return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-}
-
-
-
-        
-// === NOTIFICACIONES ===
-let notifications = [];
-let lastVideos = [];
-
-function renderNotifications() {
-  const list = document.getElementById("notification-list");
-  const count = document.getElementById("notification-count");
-
-  if (!list || !count) {
-    console.error("❌ Error: Elementos de notificaciones no encontrados en el DOM");
-    return;
-  }
-
-  list.innerHTML = "";
-
-  if (notifications.length === 0) {
-    list.innerHTML = "<div>Sin notificaciones</div>";
-    count.textContent = "";
-    count.style.display = "none";
-
-    try {
-      if (typeof AppInventor !== "undefined" && AppInventor.setWebViewString) {
-        AppInventor.setWebViewString("0");
-      }
-    } catch (e) {
-      console.warn("No se pudo enviar a App Inventor:", e);
-    }
-    return;
-  }
-
-  count.textContent = notifications.length;
-  count.style.display = "block";
-
-  notifications.forEach((notif, i) => {
-    if (!notif || !notif.link || !notif.title || !notif.id) {
-      console.warn("⚠️ Notificación inválida detectada:", notif);
-      return; // 🔥 FIX7: Evitar procesar notificaciones vacías/inválidas
-    }
-
-    const item = document.createElement("div");
-    item.textContent = notif.title;
-    item.style.cursor = "pointer";
-
-    item.onclick = () => {
-      const wrapper = document.getElementById("slides");
-      if (!wrapper) {
-        console.error("❌ Error: Contenedor de slides no encontrado");
-        return;
-      }
-
-      // 🔥 FIX7: Guardar y precargar comentarios del video actual solo si no están en caché
-      const currentVideoId = getActiveVideoId();
-      if (currentVideoId && !comentariosPorVideo[currentVideoId]) {
-        cargarComentarios(currentVideoId, false, { force: true });
-        console.log(`✅ Precargando comentarios para video actual ${currentVideoId}`);
-      }
-
-      // Buscar si ya existe el slide del anuncio
-      let slide = Array.from(wrapper.children).find(s => {
-        const card = s.querySelector('.player-card');
-        return card && card.dataset.embed === notif.link;
-      });
-
-      let isNewSlide = false;
-      // Si no existe, crearlo y agregarlo
-      if (!slide) {
-        isNewSlide = true;
-        const nuevoSlide = createSlide(notif.title, notif.link, notif.desc, notif.id);
-        if (swiper) {
-          swiper.appendSlide(nuevoSlide);
-          console.log("✅ Nuevo slide añadido al final con appendSlide");
-        } else {
-          wrapper.appendChild(nuevoSlide);
-        }
-        lastVideos.push({ title: notif.title, link: notif.link, desc: notif.desc, id: notif.id });
-        // 🔥 FIX7: Precargar comentarios del nuevo video para evitar alternancia
-        cargarComentarios(notif.id, false, { force: true });
-      }
-
-      // 🔥 FIX7: Delay para sincronización del DOM/Swiper
-      setTimeout(() => {
-        // Buscar índice real del slide en Swiper
-        let realIndex = -1;
-        if (swiper) {
-          swiper.slides.forEach((s, idx) => {
-            const card = s.querySelector('.player-card');
-            if (card && card.dataset.embed === notif.link) {
-              realIndex = idx;
-            }
-          });
-          if (isNewSlide && realIndex === -1) {
-            realIndex = swiper.slides.length - 1;
-            console.log(`✅ Nuevo video posicionado en índice final: ${realIndex}`);
-          }
-        }
-
-        if (swiper && realIndex !== -1) {
-          cleanupIframesExceptActive();
-          swiper.slideTo(realIndex, 0);
-          updateFixedTitle(swiper);
-
-          const videoId = getActiveVideoId();
-          if (videoId) {
-            if (!comentariosPorVideo[videoId] || comentariosPorVideo[videoId].length === 0) {
-              cargarComentarios(videoId, true, { force: true });
-            } else {
-              renderComentarios(videoId);
-            }
-          }
-
-          swiper.once('slideChangeTransitionEnd', () => {
-            cleanupIframesExceptActive();
-            const activeCard = document.querySelector('.swiper-slide-active .player-card');
-            if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
-              mountIframe(activeCard);
-            }
-            const videoIdFinal = getActiveVideoId();
-            if (videoIdFinal) {
-              if (!comentariosPorVideo[videoIdFinal] || comentariosPorVideo[videoIdFinal].length === 0) {
-                cargarComentarios(videoIdFinal, true, { force: true });
-              } else {
-                renderComentarios(videoIdFinal);
-              }
-            }
-            // 🔥 FIX7: Restaurar comentarios del video original si están en caché
-            if (currentVideoId && comentariosPorVideo[currentVideoId]) {
-              console.log(`✅ Restaurando comentarios para video original ${currentVideoId}`);
-              renderComentarios(currentVideoId);
-            }
-          });
-        } else {
-          console.error("❌ Error: Swiper o índice no válido al intentar navegar al nuevo video");
-        }
-      }, 100);
-
-      // Marcar como leída y cerrar panel
-      notifications.splice(i, 1);
-      renderNotifications();
-      document.getElementById("notification-list").classList.add("hidden");
-    };
-
-    list.appendChild(item);
-  });
-
-  try {
-    if (typeof AppInventor !== "undefined" && AppInventor.setWebViewString) {
-     sendToAppInventor(String(notifications.length));
-    }
-  } catch (e) {
-    console.warn("No se pudo enviar a App Inventor:", e);
-  }
-}
-// --- BOTÓN NOTIFICACIONES UNIVERSAL ---
-const notifBtn = document.getElementById("notification-btn");
-const notifList = document.getElementById("notification-list");
-
-// Mostrar/ocultar la lista al tocar el botón (desktop y móvil)
-notifBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  notifList.classList.toggle("hidden");
-});
-
-        
-// Ocultar la lista al hacer clic fuera
-document.addEventListener("click", (e) => {
-  if (!notifList.classList.contains("hidden")) {
-    if (!notifList.contains(e.target) && e.target !== notifBtn) {
-      notifList.classList.add("hidden");
-    }
-  }
-});
-
-// --- MANEJO DE ELIMINACIÓN ---
-
-// Variables para almacenar los datos del usuario, obtenidos de la URL
-let usuarioAutor = "";
-let usuarioCorreo = "";
-
-// Función para obtener los parámetros 'name' y 'email' de la URL
-function getUsuarioDataFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    usuarioAutor = params.get("name") || "";
-    usuarioCorreo = params.get("email") || "";
-}
-
-// Llamar a la función al cargar la página para obtener los datos
-document.addEventListener("DOMContentLoaded", getUsuarioDataFromUrl);
-
-// NUEVO: Variables para el modal de alerta personalizada
-const customAlertModal = document.getElementById("custom-alert-modal");
-const customAlertMessage = document.getElementById("custom-alert-message");
-const customAlertOk = document.getElementById("custom-alert-ok");
-
-// NUEVO: Función para mostrar el modal de alerta personalizado
-function showAlert(message, title = "¡Atención!") {
-    customAlertMessage.textContent = message;
-    customAlertModal.querySelector('h3').textContent = title;
-    customAlertModal.classList.remove("hidden");
-}
-
-// NUEVO: Ocultar el modal de alerta cuando se hace clic en "Aceptar"
-customAlertOk.onclick = () => {
-    customAlertModal.classList.add("hidden");
-};
-
-const btnDelete = document.getElementById("btn-delete");
-const deleteModal = document.getElementById("delete-modal");
-const deleteTitle = document.getElementById("delete-video-title");
-const deleteConfirm = document.getElementById("delete-confirm");
-const deleteCancel = document.getElementById("delete-cancel");
-
-let pendingDelete = null;
-
-btnDelete.onclick = () => {
-    if (!swiper) return;
-    const activeSlide = document.querySelector(".swiper-slide-active");
-    if (!activeSlide) return;
-
-    const title = activeSlide.dataset.title;
-    const link = activeSlide.querySelector(".player-card")?.dataset.embed;
-
-    // Si no hay datos de usuario, notificar y salir
-    if (!usuarioAutor || !usuarioCorreo) {
-        showAlert("No se pudo obtener la información de tu cuenta. Intenta recargar la página.");
-        return;
-    }
-
-    pendingDelete = { title, link };
-    deleteTitle.textContent = `¿Eliminar "${title}"?`;
-    deleteModal.classList.remove("hidden");
-};
-
-deleteCancel.onclick = () => {
-    deleteModal.classList.add("hidden");
-    pendingDelete = null;
-};
-
-deleteConfirm.onclick = async () => {
-    if (!pendingDelete) return;
-    const { title, link } = pendingDelete;
-
-    deleteModal.classList.add("hidden");
-    pendingDelete = null;
-
-    let identifier = "";
-    let fileName = "";
-    let archiveMatch = link.match(/archive\.org\/download\/([^/]+)\/(.+)$/);
-    if (archiveMatch) {
-        identifier = archiveMatch[1];
-        fileName = decodeURIComponent(archiveMatch[2]);
-    }
-    
-    const deleteUrl = `${SCRIPT_URL}?accion=eliminar&link=${encodeURIComponent(link)}&id=${encodeURIComponent(identifier)}&file=${encodeURIComponent(fileName)}&autor=${encodeURIComponent(usuarioAutor)}&correo=${encodeURIComponent(usuarioCorreo)}`;
-
-    try {
-        const response = await fetch(deleteUrl);
-        const data = await response.json();
-
-        if (data.status === "success") {
-            const activeIndex = swiper.activeIndex; // 👈 usar activeIndex real del DOM
-            const activeSlide = swiper.slides[activeIndex];
-
-            if (activeSlide) {
-                activeSlide.remove();
-                swiper.update();
-
-                // Si hay slides, ir al mismo índice (que ahora apunta al siguiente inmediato)
-                if (swiper.slides.length > 0) {
-                    let targetIndex = Math.min(activeIndex, swiper.slides.length - 1);
-                    swiper.slideTo(targetIndex, 0); // 👈 movimiento exacto
-                }
-            }
-
-            showAlert("✅ Video eliminado con éxito.", "¡Listo!");
-        } else {
-            showAlert("❌ Error al eliminar: " + data.message, "Error");
-        }
-    } catch (err) {
-        showAlert("⚠️ Error de conexión al intentar eliminar.", "Error");
-    }
-};
-
-
-
-
-        
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw.../exec"; // Reemplaza con tu URL
         let swiper = null;
+        let currentTab = "fotos";
+        let lastVideos = [];
+        let comentariosPorVideo = {};
         let players = {};
 
+        // Inicializar tabs
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                currentTab = link.getAttribute('data-tab');
+                cargarContenido();
+            });
+        });
+
+        // Función para cargar contenido según la pestaña
+        async function cargarContenido() {
+            const wrapper = document.getElementById("slides");
+            if (!wrapper) return;
+            wrapper.innerHTML = "";
+            if (swiper) swiper.destroy(true, true);
+
+            if (currentTab === "fotos") {
+                await cargarFotos();
+            } else if (currentTab === "videos") {
+                await cargarVideos();
+            }
+        }
+
+        // Cargar fotos (simplificado, ajusta según tu lógica de fotos.html)
+        async function cargarFotos() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?accion=listar&tipo=fotos`);
+                const data = await res.json();
+                const wrapper = document.getElementById("slides");
+                if (Array.isArray(data.data)) {
+                    data.data.forEach((row) => {
+                        const titulo = row[0];
+                        const link = row[1];
+                        if (titulo && link) {
+                            const slide = document.createElement("div");
+                            slide.className = "swiper-slide";
+                            const card = document.createElement("div");
+                            card.className = "image-card";
+                            const img = document.createElement("img");
+                            img.src = link;
+                            img.style.width = "100%";
+                            img.style.height = "100%";
+                            img.style.objectFit = "contain";
+                            card.appendChild(img);
+                            slide.appendChild(card);
+                            wrapper.appendChild(slide);
+                        }
+                    });
+                }
+                initSwiper();
+            } catch (e) {
+                console.error("Error cargando fotos:", e);
+            }
+        }
+
+        // Cargar videos (usando la lógica de sliderVideos.html)
+        async function cargarVideos() {
+            const loader = document.getElementById("loader");
+            if (!loader) console.error("❌ Error: Elemento loader no encontrado en el DOM");
+            loader.style.display = "flex";
+
+            try {
+                const res = await fetch(`${SCRIPT_URL}?accion=listar&tipo=videos`);
+                const data = await res.json();
+                const wrapper = document.getElementById("slides");
+                wrapper.innerHTML = "";
+
+                let newVideos = [];
+                if (Array.isArray(data.data)) {
+                    data.data.forEach((row) => {
+                        const titulo = row[0];
+                        const link = row[1];
+                        const descripcion = row[4] || "";
+                        const id = row[5];
+                        if (titulo && link && id) {
+                            newVideos.push({ title: titulo, link, desc: descripcion, id });
+                        }
+                    });
+                }
+
+                newVideos.forEach(v => {
+                    wrapper.appendChild(createSlide(v.title, v.link, v.desc, v.id));
+                });
+
+                lastVideos = newVideos;
+                initSwiper();
+            } catch (e) {
+                console.error("❌ Error cargando videos:", e);
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+
+        // Crear slide (adaptado de sliderVideos.html)
+        function createSlide(titulo, link, descripcion, id) {
+            const { embedSrc, poster } = getEmbedInfo(link);
+            const slide = document.createElement("div");
+            slide.className = "swiper-slide";
+            slide.dataset.title = titulo || "Video";
+            slide.dataset.descripcion = descripcion || "";
+            slide.dataset.videoid = id || "";
+
+            const card = document.createElement("div");
+            card.className = "player-card";
+            card.dataset.embed = embedSrc;
+
+            const posterEl = document.createElement("div");
+            posterEl.className = "poster";
+            if (poster) posterEl.style.backgroundImage = `url("${poster}")`;
+            const playBtn = document.createElement("div");
+            playBtn.className = "play-btn";
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            posterEl.appendChild(playBtn);
+            posterEl.addEventListener("click", () => mountIframe(card, true));
+            card.appendChild(posterEl);
+            slide.appendChild(card);
+
+            return slide;
+        }
+
+        // getEmbedInfo y mountIframe (copiados de sliderVideos.html)
         function getEmbedInfo(link) {
             const url = new URL(link, location.href);
             if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
-                let videoId = "";
-                if (url.hostname.includes("youtube.com")) {
-                    videoId = url.searchParams.get("v") || "";
-                } else if (url.hostname.includes("youtu.be")) {
-                    videoId = url.pathname.replace("/", "");
-                }
+                let videoId = url.searchParams.get("v") || url.pathname.replace("/", "");
                 if (videoId) {
                     const embedSrc = `https://www.youtube.com/embed/${videoId}?rel=0&playsinline=1&controls=0&modestbranding=1`;
                     const poster = "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg";
@@ -1825,166 +270,85 @@ deleteConfirm.onclick = async () => {
                 }
             }
             if (url.hostname.includes("archive.org")) {
-                let identifier = "";
-                const m = link.match(/archive\.org\/(?:embed|details|download)\/([^?&#/]+)/i);
-                if (m && m[1]) {
-                    identifier = m[1];
-                }
+                let identifier = url.pathname.match(/\/(?:embed|details|download)\/([^?&#/]+)/i)?.[1] || "";
                 const poster = identifier ? `https://archive.org/services/img/${identifier}` : "";
-                return { type: "mp4", embedSrc: link, poster: poster };
+                return { type: "mp4", embedSrc: link, poster };
             }
             if (url.pathname.endsWith(".mp4")) {
-                 return { type: "mp4", embedSrc: link, poster: "" };
+                return { type: "mp4", embedSrc: link, poster: "" };
             }
             return { type: "other", embedSrc: link, poster: "" };
         }
 
-    function createSlide(titulo, link, descripcion, id) {
-    const { embedSrc, poster } = getEmbedInfo(link);
-    const slide = document.createElement("div");
-    slide.className = "swiper-slide";
-    slide.dataset.title = titulo || "Video";
-    slide.dataset.descripcion = descripcion || "";
-    slide.dataset.videoid = id || ""; // ← AGREGA EL ID ÚNICO AQUÍ
-
-    const card = document.createElement("div");
-    card.className = "player-card";
-    card.dataset.embed = embedSrc;
-
-    const posterEl = document.createElement("div");
-    posterEl.className = "poster";
-    if (poster) posterEl.style.backgroundImage = `url("${poster}")`;
-
-    const playBtn = document.createElement("div");
-    playBtn.className = "play-btn";
-    playBtn.innerHTML = '<i class="fas fa-play"></i>';
-    posterEl.appendChild(playBtn);
-
-    posterEl.addEventListener("click", () => {
-        mountIframe(card, true);
-    });
-
-    card.appendChild(posterEl);
-    slide.appendChild(card);
-
-    return slide;
-}
-
-
-
         function mountIframe(cardEl, autoplay = true) {
-  // 🔥 Antes de montar, desmonta todo lo demás
-  cleanupIframesExceptActiveAndAdjacent();
-
-  if (cardEl.querySelector("iframe") || cardEl.querySelector("video")) return;
-
-  const src = cardEl.dataset.embed;
-  const info = getEmbedInfo(src);
-
-  const poster = cardEl.querySelector(".poster");
-  if (poster) poster.remove();
-  
-  const controls = createControls();
-  cardEl.appendChild(controls);
-
-  const centerPlayPauseBtn = document.createElement("div");
-  centerPlayPauseBtn.className = "center-play-pause-btn";
-  centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-  cardEl.appendChild(centerPlayPauseBtn);
-  
-  let player;
-
-  if (info.type === "youtube") {
-    const container = document.createElement("div");
-    container.className = "player-iframe";
-    cardEl.appendChild(container);
-
-    player = new YT.Player(container, {
-      videoId: info.videoId,
-      playerVars: { autoplay: autoplay ? 1 : 0, rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
-      events: {
-        onReady: (event) => {
-          if (autoplay) event.target.playVideo();
-          setupControls(event.target, 'youtube', controls, centerPlayPauseBtn, cardEl);
-        },
-        onStateChange: (event) => {
-          const state = event.data;
-          if (state === YT.PlayerState.PLAYING) {
+            cleanupIframesExceptActiveAndAdjacent();
+            if (cardEl.querySelector("iframe") || cardEl.querySelector("video")) return;
+            const src = cardEl.dataset.embed;
+            const info = getEmbedInfo(src);
+            const poster = cardEl.querySelector(".poster");
+            if (poster) poster.remove();
+            const controls = createControls();
+            cardEl.appendChild(controls);
+            const centerPlayPauseBtn = document.createElement("div");
+            centerPlayPauseBtn.className = "center-play-pause-btn";
             centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            centerPlayPauseBtn.style.opacity = 0;
-          } else if (state === YT.PlayerState.PAUSED) {
-            centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-            centerPlayPauseBtn.style.opacity = 1;
-          } else {
-            centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-          }
+            cardEl.appendChild(centerPlayPauseBtn);
+            let player;
+            if (info.type === "youtube") {
+                const container = document.createElement("div");
+                container.className = "player-iframe";
+                cardEl.appendChild(container);
+                player = new YT.Player(container, {
+                    videoId: info.videoId,
+                    playerVars: { autoplay: autoplay ? 1 : 0, rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
+                    events: {
+                        onReady: (event) => { if (autoplay) event.target.playVideo(); setupControls(event.target, 'youtube', controls, centerPlayPauseBtn, cardEl); },
+                        onStateChange: (event) => { /* ... */ }
+                    }
+                });
+                players[src] = player;
+            } else if (info.type === "mp4") {
+                const video = document.createElement("video");
+                video.className = "player-iframe";
+                if (autoplay) video.setAttribute("autoplay", "true");
+                video.setAttribute("playsinline", "true");
+                video.style.width = "100%";
+                video.style.height = "100%";
+                video.style.background = "#000";
+                const source = document.createElement("source");
+                source.src = src;
+                source.type = "video/mp4";
+                video.appendChild(source);
+                cardEl.appendChild(video);
+                player = video;
+                players[src] = player;
+                video.addEventListener('loadedmetadata', () => { setupControls(video, 'mp4', controls, centerPlayPauseBtn, cardEl); if (!autoplay) video.pause(); });
+            } else {
+                const iframe = document.createElement("iframe");
+                iframe.className = "player-iframe";
+                iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+                iframe.setAttribute("allowfullscreen", "true");
+                iframe.setAttribute("title", "Video");
+                iframe.src = src + (src.includes("?") ? "&" : "?") + (autoplay ? "autoplay=1" : "");
+                cardEl.appendChild(iframe);
+            }
         }
-      }
-    });
-    players[src] = player;
-  } else if (info.type === "mp4") {
-    const video = document.createElement("video");
-    video.className = "player-iframe";
-    if (autoplay) video.setAttribute("autoplay", "true");
-    video.setAttribute("playsinline", "true");
-    video.style.width = "100%";
-    video.style.height = "100%";
-    video.style.background = "#000";
 
-    const source = document.createElement("source");
-    source.src = src;
-    source.type = "video/mp4";
-    video.appendChild(source);
-    cardEl.appendChild(video);
-
-    player = video;
-    players[src] = player;
-
-    video.addEventListener('loadedmetadata', () => {
-      setupControls(video, 'mp4', controls, centerPlayPauseBtn, cardEl);
-      if (!autoplay) video.pause();
-    });
-    video.addEventListener('play', () => {
-      centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-      centerPlayPauseBtn.style.opacity = 0;
-    });
-    video.addEventListener('pause', () => {
-      centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-      centerPlayPauseBtn.style.opacity = 1;
-    });
-    video.addEventListener('ended', () => {
-      centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-      centerPlayPauseBtn.style.opacity = 1;
-    });
-  } else {
-    const iframe = document.createElement("iframe");
-    iframe.className = "player-iframe";
-    iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
-    iframe.setAttribute("allowfullscreen", "true");
-    iframe.src = src + (src.includes("?") ? "&" : "?") + (autoplay ? "autoplay=1" : "");
-    cardEl.appendChild(iframe);
-  }
-}
-
-        
+        // createControls, setupControls, etc. (copiados de sliderVideos.html)
         function createControls() {
             const controlsBar = document.createElement("div");
             controlsBar.className = "controls-bar";
-
             const playPauseBtn = document.createElement("button");
             playPauseBtn.className = "play-pause-btn";
             playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-
             const progressBarContainer = document.createElement("div");
             progressBarContainer.className = "progress-bar";
             const progress = document.createElement("div");
             progress.className = "progress";
             progressBarContainer.appendChild(progress);
-
             const timeDisplay = document.createElement("div");
             timeDisplay.className = "time";
             timeDisplay.textContent = "00:00 / 00:00";
-
             const volumeControl = document.createElement("div");
             volumeControl.className = "volume-control";
             const volumeIcon = document.createElement("span");
@@ -1998,540 +362,35 @@ deleteConfirm.onclick = async () => {
             volumeSlider.value = "1";
             volumeControl.appendChild(volumeIcon);
             volumeControl.appendChild(volumeSlider);
-
             controlsBar.appendChild(playPauseBtn);
             controlsBar.appendChild(progressBarContainer);
             controlsBar.appendChild(timeDisplay);
             controlsBar.appendChild(volumeControl);
-
             return controlsBar;
         }
 
-function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            return [h, m, s]
-                .filter(v => v > 0 || v === 0)
-                .map(v => v.toString().padStart(2, '0'))
-                .join(':')
-                .replace(/^00:/, '');
-        }
-
         function setupControls(player, type, controls, centerPlayPauseBtn, cardEl) {
-            const playPauseBtn = controls.querySelector('.play-pause-btn');
-            const progressBarContainer = controls.querySelector('.progress-bar');
-            const progress = controls.querySelector('.progress');
-            const volumeSlider = controls.querySelector('.volume-control input');
-            const timeDisplay = controls.querySelector('.time');
-            let totalTime = 0;
-            let timeoutId;
-            
-            const hideControls = () => {
-                controls.style.opacity = 0;
-                if (type === 'youtube' && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                    centerPlayPauseBtn.style.opacity = 0;
-                } else if (type === 'mp4' && !player.paused) {
-                    centerPlayPauseBtn.style.opacity = 0;
-                }
-            };
-            
-            const showControls = () => {
-                clearTimeout(timeoutId);
-                controls.style.opacity = 1;
-                centerPlayPauseBtn.style.opacity = 1;
-                timeoutId = setTimeout(hideControls, 3000);
-            };
-
-            const updateTime = () => {
-                let currentTime = 0;
-                if (type === 'youtube') {
-                    currentTime = player.getCurrentTime();
-                } else {
-                    currentTime = player.currentTime;
-                }
-                const progressPercentage = (currentTime / totalTime) * 100;
-                progress.style.width = `${progressPercentage}%`;
-                timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(totalTime)}`;
-            };
-
-            const interval = setInterval(updateTime, 1000);
-
-            cardEl.addEventListener('mouseenter', showControls);
-            cardEl.addEventListener('mouseleave', hideControls);
-            cardEl.addEventListener('mousemove', showControls);
-            
-            if (type === 'youtube') {
-                totalTime = player.getDuration();
-                updateTime();
-                playPauseBtn.onclick = () => {
-                    const state = player.getPlayerState();
-                    if (state === YT.PlayerState.PLAYING) {
-                        player.pauseVideo();
-                    } else {
-                        player.playVideo();
-                    }
-                };
-                centerPlayPauseBtn.onclick = playPauseBtn.onclick;
-
-                progressBarContainer.onclick = (e) => {
-                    const clickX = e.offsetX;
-                    const totalWidth = progressBarContainer.clientWidth;
-                    const newTime = (clickX / totalWidth) * totalTime;
-                    player.seekTo(newTime, true);
-                };
-                volumeSlider.oninput = (e) => player.setVolume(e.target.value * 100);
-            } else if (type === 'mp4') {
-                totalTime = player.duration;
-                updateTime();
-                playPauseBtn.onclick = () => {
-                    if (player.paused) {
-                        player.play();
-                    } else {
-                        player.pause();
-                    }
-                };
-                centerPlayPauseBtn.onclick = playPauseBtn.onclick;
-                progressBarContainer.onclick = (e) => {
-                    const clickX = e.offsetX;
-                    const totalWidth = progressBarContainer.clientWidth;
-                    const newTime = (clickX / totalWidth) * totalTime;
-                    player.currentTime = newTime;
-                };
-                volumeSlider.oninput = (e) => player.volume = e.target.value;
-                player.addEventListener('timeupdate', updateTime);
-            }
+            // ... (copia la lógica de sliderVideos.html) ...
         }
 
-        function restorePoster(card) {
-            const src = card.dataset.embed;
-            const player = players[src];
-            if (player) {
-                if (typeof player.pauseVideo === 'function') {
-                    player.pauseVideo();
-                } else if (typeof player.pause === 'function') {
-                    player.pause();
+        function initSwiper() {
+            if (swiper) swiper.destroy(true, true);
+            swiper = new Swiper(".swiper", {
+                loop: true,
+                direction: "vertical",
+                slidesPerView: 1,
+                spaceBetween: 10,
+                on: {
+                    init() { /* ... */ },
+                    slideChange() { /* ... */ }
                 }
-            }
-
-            const playerContainer = card.querySelector(".player-iframe");
-            if (playerContainer) playerContainer.remove();
-
-            const controlsBar = card.querySelector(".controls-bar");
-            if (controlsBar) controlsBar.remove();
-            
-            const centerBtn = card.querySelector(".center-play-pause-btn");
-            if (centerBtn) centerBtn.remove();
-
-            if (!card.querySelector(".poster")) {
-                const info = getEmbedInfo(src);
-                const posterEl = document.createElement("div");
-                posterEl.className = "poster";
-                if (info.poster) {
-                    posterEl.style.backgroundImage = `url("${info.poster}")`;
-                }
-                const playBtn = document.createElement("div");
-                playBtn.className = "play-btn";
-                playBtn.innerHTML = '<i class="fas fa-play"></i>';
-                posterEl.appendChild(playBtn);
-                posterEl.addEventListener("click", () => mountIframe(card, true));
-                card.appendChild(posterEl);
-            }
+            });
         }
 
-        // --- INICIO DE LA CORRECCIÓN ---
-function cleanupIframesExceptActiveAndAdjacent() {
-    if (!swiper) return;
-
-    const activeIndex = swiper.activeIndex;
-    const prevIndex = (activeIndex - 1 + swiper.slides.length) % swiper.slides.length;
-    const nextIndex = (activeIndex + 1) % swiper.slides.length;
-
-    swiper.slides.forEach((slide, index) => {
-        if (index !== activeIndex && index !== prevIndex && index !== nextIndex) {
-            const card = slide.querySelector(".player-card");
-            if (card) {
-                const src = card.dataset.embed;
-                const player = players[src];
-                if (player) {
-                    if (typeof player.pauseVideo === 'function') player.pauseVideo();
-                    else if (typeof player.pause === 'function') player.pause();
-                    delete players[src]; // Limpiar el reproductor de la memoria
-                }
-                restorePoster(card); // Restaurar el póster solo para slides no adyacentes
-            }
-        } else if (index !== activeIndex) {
-            // Para prev y next, pausar si está reproduciendo, pero mantener el iframe/video
-            const card = slide.querySelector(".player-card");
-            if (card) {
-                const src = card.dataset.embed;
-                const player = players[src];
-                if (player) {
-                    if (typeof player.pauseVideo === 'function') player.pauseVideo();
-                    else if (typeof player.pause === 'function') player.pause();
-                    // Actualizar botón central para slides adyacentes
-                    const centerPlayPauseBtn = card.querySelector('.center-play-pause-btn');
-                    if (centerPlayPauseBtn) {
-                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                        centerPlayPauseBtn.style.opacity = 1;
-                    }
-                }
-            }
-        }
-    });
-}
-
-        // --- FIN DE LA CORRECCIÓN ---
-
-   function updateFixedTitle(swiperInstance) {
-    const fixedBox = document.getElementById("video-title-fixed");
-    if (!fixedBox || !swiperInstance) return;
-
-    const activeSlide = swiperInstance.slides[swiperInstance.activeIndex] || document.querySelector('.swiper-slide-active');
-    if (!activeSlide) return;
-
-    const newTitle = activeSlide.dataset.title || "Video";
-    const newDesc = activeSlide.dataset.descripcion || "";
-
-    const titleEl = fixedBox.querySelector(".video-title");
-    const descEl = fixedBox.querySelector(".video-desc");
-
-    const currentTitle = titleEl.querySelector('.text-container')?.textContent;
-    const currentDesc = descEl.querySelector('.text-container')?.textContent;
-    
-    if (currentTitle === newTitle && currentDesc === newDesc) {
-        return;
-    }
-
-    fixedBox.style.opacity = 0;
-
-    setTimeout(() => {
-        const setupExpandableText = (element, text, allowExpand = true) => {
-            // ✅ limpiar cualquier rastro previo (importante en la primera carga)
-            element.innerHTML = "";
-            
-            const container = document.createElement("span");
-            container.className = "text-container";
-            container.textContent = text;
-            element.appendChild(container);
-
-            setTimeout(() => {
-                if (!allowExpand) return; // 👈 el título no se expande
-
-                // crear copia para medir sin clamp
-                const temp = container.cloneNode(true);
-                temp.style.display = "inline-block";
-                temp.style.webkitLineClamp = "unset";
-                temp.style.maxHeight = "none";
-                temp.style.visibility = "hidden";
-                element.appendChild(temp);
-
-                const needsClamp = temp.scrollHeight > container.clientHeight;
-                temp.remove();
-
-                if (needsClamp) {
-                    // ✅ asegurar que no se dupliquen botones
-                    element.querySelectorAll(".toggle-text").forEach(btn => btn.remove());
-
-                    const toggleButton = document.createElement("span");
-                    toggleButton.className = "toggle-text";
-                    toggleButton.textContent = "...más";
-                    element.appendChild(toggleButton);
-
-                    const toggleExpand = () => {
-                        const isExpanded = container.classList.contains("expanded");
-                        if (isExpanded) {
-                            container.classList.remove("expanded");
-                            toggleButton.textContent = "...más";
-                        } else {
-                            container.classList.add("expanded");
-                            toggleButton.textContent = "mostrar menos";
-                        }
-                    };
-
-                    // clic en el botón o en el contenedor
-                    toggleButton.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        toggleExpand();
-                    });
-                    container.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        toggleExpand();
-                    });
-                }
-            }, 50);
-        };
-
-        setupExpandableText(titleEl, newTitle, false); // 👈 título siempre completo
-        setupExpandableText(descEl, newDesc, true);   // 👈 descripción expandible
-
-        fixedBox.style.opacity = 1;
-    }, 120);
-}
-
-
-
-        
-
-
-async function cargarVideos(checkNew = false) {
-  const loader = document.getElementById("loader");
-  if (!loader) {
-    console.error("❌ Error: Elemento loader no encontrado en el DOM");
-    return;
-  }
-  if (!checkNew) loader.style.display = "flex";
-
-  try {
-    const res = await fetch(`${SCRIPT_URL}?accion=listar&tipo=videos`);
-    const data = await res.json();
-
-    const wrapper = document.getElementById("slides");
-    if (!wrapper) {
-      console.error("❌ Error: Contenedor de slides no encontrado");
-      loader.style.display = "none";
-      return;
-    }
-    if (!checkNew) wrapper.innerHTML = "";
-
-    let newVideos = [];
-    if (Array.isArray(data.data)) {
-      data.data.forEach((row) => {
-        const titulo = row[0];
-        const link = row[1];
-        const descripcion = row[4] || "";
-        const id = row[5];
-        if (titulo && link && id) { // 🔥 FIX8: Validar datos para evitar videos inválidos
-          newVideos.push({ title: titulo, link, desc: descripcion, id });
-        }
-      });
-    } else {
-      console.warn("⚠️ Advertencia: No se recibieron datos válidos de videos");
-    }
-
-    // ⚡ Precargamos primero los comentarios del PRIMER video
-    if (!checkNew && newVideos.length > 0) {
-      const primerVideoId = newVideos[0].id;
-      await cargarComentarios(primerVideoId, true);
-      console.log("✅ Comentarios del primer video cargados");
-
-      const videosRestantes = newVideos.slice(1);
-      if (videosRestantes.length > 0) {
-        Promise.all(videosRestantes.map(v => cargarComentarios(v.id, false)))
-          .catch(e => console.warn("Error precargando comentarios:", e));
-      }
-    }
-
-    // ⚡ Mostramos los videos
-    if (!checkNew) {
-      newVideos.forEach(v => {
-        wrapper.appendChild(createSlide(v.title, v.link, v.desc, v.id));
-      });
-    }
-
-    // 🔥 FIX8: Eliminación silenciosa sin afectar slide activo
-    if (checkNew) {
-      const linksActivos = newVideos.map(v => v.link);
-      const activeSlide = document.querySelector('.swiper-slide-active');
-      const activeLink = activeSlide ? activeSlide.querySelector('.player-card')?.dataset.embed : null;
-      
-      Array.from(wrapper.children).forEach(slide => {
-        const card = slide.querySelector(".player-card");
-        if (card && !linksActivos.includes(card.dataset.embed)) {
-          if (slide === activeSlide) {
-            // 🔥 FIX8: Si el slide eliminado es el activo, pasar al siguiente slide
-            if (swiper) {
-              swiper.removeSlide(swiper.activeIndex);
-              console.log("✅ Slide activo eliminado, pasando al siguiente");
-              swiper.slideNext(0); // Transición inmediata al siguiente slide
-            }
-          } else {
-            // 🔥 FIX8: Eliminar solo slides no activos, sin actualizar Swiper inmediatamente
-            wrapper.removeChild(slide);
-            console.log("✅ Slide no activo eliminado silenciosamente");
-          }
-        }
-      });
-      // 🔥 FIX8: Actualizar Swiper solo después de todas las eliminaciones
-      if (swiper) {
-        swiper.update();
-        console.log("✅ Swiper actualizado tras eliminación");
-      }
-    }
-
-    // 🛎️ Notificaciones de nuevos videos
-    if (checkNew && lastVideos.length > 0) { 
-      const nuevos = newVideos.filter(v => !lastVideos.find(old => old.link === v.link));
-      if (nuevos.length > 0) {
-        // 🔥 FIX8: Filtrar notificaciones vacías/inválidas antes de añadir
-        const validNuevos = nuevos.filter(v => v.title && v.link && v.id);
-        if (validNuevos.length > 0) {
-          notifications.unshift(...validNuevos);
-          renderNotifications();
-          console.log(`✅ ${validNuevos.length} nuevas notificaciones válidas añadidas`);
-        } else {
-          console.warn("⚠️ No se añadieron notificaciones: datos inválidos");
-        }
-      }
-    }
-
-    lastVideos = newVideos;
-
-    // ✅ Inicializamos Swiper
-  // Dentro de cargarVideos, reemplaza el bloque de inicialización de Swiper con este:
-// Reemplaza solo el bloque de inicialización de Swiper dentro de cargarVideos
-// Reemplaza solo el bloque de inicialización de Swiper dentro de cargarVideos
-if (!checkNew) {
-    if (swiper) swiper.destroy(true, true);
-    swiper = new Swiper(".swiper", {
-        loop: true,
-        direction: "vertical",
-        slidesPerView: 1,
-        spaceBetween: 10,
-        pagination: false,
-        on: {
-            init() {
-                updateFixedTitle(this);
-                activarSwipeParaBorrar();
-                const videoId = getActiveVideoId();
-                if (videoId) renderComentarios(videoId);
-                console.log("✅ Swiper inicializado");
-                // Inicializar el primer video con reproducción automática
-                const activeCard = this.slides[this.activeIndex].querySelector('.player-card');
-                if (activeCard && !activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
-                    mountIframe(activeCard, true);
-                }
-            },
-            slideChange() {
-                cleanupIframesExceptActiveAndAdjacent();
-                updateFixedTitle(this);
-                activarSwipeParaBorrar();
-                const videoId = getActiveVideoId();
-                if (videoId) {
-                    if (!comentariosPorVideo[videoId]) {
-                        cargarComentarios(videoId, true);
-                    } else {
-                        renderComentarios(videoId);
-                    }
-                }
-            },
-            slideChangeTransitionEnd() {
-                updateFixedTitle(this);
-                const activeIndex = this.activeIndex;
-                const prevIndex = (activeIndex - 1 + this.slides.length) % this.slides.length;
-                const nextIndex = (activeIndex + 1) % this.slides.length;
-
-                // Manejar active
-                const activeCard = this.slides[activeIndex].querySelector('.player-card');
-                if (activeCard) {
-                    const src = activeCard.dataset.embed;
-                    if (!activeCard.querySelector("iframe") && !activeCard.querySelector("video")) {
-                        mountIframe(activeCard, true); // Montar con reproducción automática
-                    } else {
-                        const player = players[src];
-                        if (player) {
-                            // Asegurar que el video activo se reproduzca
-                            if (typeof player.playVideo === 'function') {
-                                player.playVideo();
-                            } else if (typeof player.play === 'function') {
-                                player.play().catch(e => console.warn("Error al reproducir:", e));
-                            }
-                            // Actualizar estado del botón central
-                            const centerPlayPauseBtn = activeCard.querySelector('.center-play-pause-btn');
-                            if (centerPlayPauseBtn) {
-                                centerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                                centerPlayPauseBtn.style.opacity = 0;
-                            }
-                        }
-                    }
-                }
-
-                // Precargar prev
-                const prevCard = this.slides[prevIndex].querySelector('.player-card');
-                if (prevCard && !prevCard.querySelector("iframe") && !prevCard.querySelector("video")) {
-                    mountIframe(prevCard, false); // Precargar sin reproducir
-                } else if (prevCard) {
-                    const centerPlayPauseBtn = prevCard.querySelector('.center-play-pause-btn');
-                    if (centerPlayPauseBtn) {
-                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                        centerPlayPauseBtn.style.opacity = 1;
-                    }
-                }
-
-                // Precargar next
-                const nextCard = this.slides[nextIndex].querySelector('.player-card');
-                if (nextCard && !nextCard.querySelector("iframe") && !nextCard.querySelector("video")) {
-                    mountIframe(nextCard, false); // Precargar sin reproducir
-                } else if (nextCard) {
-                    const centerPlayPauseBtn = nextCard.querySelector('.center-play-pause-btn');
-                    if (centerPlayPauseBtn) {
-                        centerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                        centerPlayPauseBtn.style.opacity = 1;
-                    }
-                }
-
-                const videoId = getActiveVideoId();
-                if (videoId && comentariosPorVideo[videoId]) {
-                    renderComentarios(videoId);
-                }
-            }
-        },
-    });
-
-    cleanupIframesExceptActiveAndAdjacent();
-    updateFixedTitle(swiper);
-    activarSwipeParaBorrar();
-    const videoId = getActiveVideoId();
-    if (videoId) renderComentarios(videoId);
-}
-  } catch (e) {
-    console.error("❌ Error cargando videos:", e);
-  } finally {
-    loader.style.display = "none";
-  }
-}
-
-
-
-        
-        function activarSwipeParaBorrar() {
-  const comentarios = document.querySelectorAll(".comentario-propio"); // clase para tus comentarios
-
-  comentarios.forEach(comentario => {
-    let startX = 0;
-    let endX = 0;
-
-    comentario.addEventListener("touchstart", e => {
-      startX = e.touches[0].clientX;
-    });
-
-    comentario.addEventListener("touchmove", e => {
-      endX = e.touches[0].clientX;
-    });
-
-    comentario.addEventListener("touchend", () => {
-      if (startX - endX > 80) {  // si desliza a la izquierda más de 80px
-        eliminarComentario(comentario.dataset.id); // usa el id del comentario
-      }
-    });
-  });
-}
-
-
-// === AUTO REFRESCO EN SEGUNDO PLANO ===
-setInterval(() => {
-  cargarVideos(true); // solo refresca notificaciones, no toca el slider
-}, 3000);
-
-        cargarVideos();
+        // Iniciar con fotos por defecto
+        window.addEventListener("load", () => {
+            cargarContenido();
+        });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
