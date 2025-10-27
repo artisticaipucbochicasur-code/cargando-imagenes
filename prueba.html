@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Subir Anuncio</title>
   <style>
-    body { font-family: Arial; max-width: 600px; margin: 30px auto; padding: 20px; background: #f9f9f9; }
-    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    input, textarea, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
-    textarea { height: 80px; resize: vertical; }
-    button { background: #28a745; color: white; font-weight: bold; cursor: pointer; }
-    button:hover { background: #218838; }
-    #preview { max-width: 100%; margin: 10px 0; border-radius: 8px; }
-    .msg { margin-top: 15px; padding: 12px; border-radius: 5px; }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 20px; background: #f0f2f5; }
+    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
+    input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+    textarea { height: 90px; resize: vertical; }
+    button { background: #1a73e8; color: white; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #1557b0; }
+    #preview { max-width: 100%; margin: 10px 0; border-radius: 8px; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .msg { margin-top: 15px; padding: 14px; border-radius: 8px; font-weight: bold; text-align: center; }
     .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .loading { background: #fff3cd; color: #856404; }
@@ -21,12 +22,12 @@
 <body>
 
 <div class="card">
-  <h2>Subir Anuncio a Drive</h2>
+  <h2>Subir Anuncio</h2>
   <form id="formAnuncio">
     <input type="text" id="titulo" placeholder="Título del anuncio" required />
     <textarea id="descripcion" placeholder="Descripción" required></textarea>
     <input type="file" id="imagen" accept="image/jpeg,image/png" required />
-    <img id="preview" src="" alt="Vista previa" style="display:none;" />
+    <img id="preview" src="" alt="Vista previa" />
     <input type="text" id="autor" placeholder="Tu nombre" required />
     <input type="email" id="correo" placeholder="tu@email.com" required />
     <button type="submit">Subir Anuncio</button>
@@ -36,42 +37,43 @@
 
 <script>
   // Vista previa de imagen
-  document.getElementById('imagen').addEventListener('change', function(e) {
+  document.getElementById('imagen').addEventListener('change', e => {
     const file = e.target.files[0];
     const preview = document.getElementById('preview');
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(e) {
-        preview.src = e.target.result;
+      reader.onload = () => {
+        preview.src = reader.result;
         preview.style.display = 'block';
       };
       reader.readAsDataURL(file);
     }
   });
 
+  // Convertir a base64
+  const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Mostrar mensaje
+  const mostrar = (tipo, texto) => {
+    const div = document.getElementById('resultado');
+    div.innerHTML = `<div class="msg ${tipo}">${texto}</div>`;
+  };
+
   // Enviar formulario
-  document.getElementById('formAnuncio').addEventListener('submit', async function(e) {
+  document.getElementById('formAnuncio').onsubmit = async e => {
     e.preventDefault();
-    const resultado = document.getElementById('resultado');
-    resultado.innerHTML = '<div class="msg loading">Subiendo anuncio...</div>';
+    mostrar('loading', 'Subiendo anuncio...');
 
     const file = document.getElementById('imagen').files[0];
-    if (!file) {
-      resultado.innerHTML = '<div class="msg error">Selecciona una imagen.</div>';
-      return;
-    }
-
-    // Convertir a base64
-    const toBase64 = file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = error => reject(error);
-    });
+    if (!file) return mostrar('error', 'Selecciona una imagen');
 
     try {
       const base64 = await toBase64(file);
-
       const datos = {
         accion: "guardar",
         tipo: "anuncio",
@@ -82,41 +84,40 @@
         correo: document.getElementById('correo').value.trim()
       };
 
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec', {
+      // ENVIAR SIN ESPERAR JSON (porque Google a veces bloquea CORS)
+      await fetch('https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec', {
         method: 'POST',
         body: JSON.stringify(datos),
         headers: { 'Content-Type': 'application/json' },
-        mode: 'cors'
+        mode: 'no-cors' // CLAVE: evita el error "Failed to fetch"
       });
 
-      const text = await response.text();
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch (e) {
-        throw new Error("Respuesta no es JSON: " + text);
-      }
+      // ESPERAR 3 SEGUNDOS PARA QUE SE GUARDE
+      await new Promise(r => setTimeout(r, 3000));
 
-      if (json.status === "success") {
-        // Extraemos la URL de la imagen desde la hoja (columna 3)
-        const ultimaFila = SpreadsheetApp.openById("1xp9vXf3mwy8284O59loACSuvG5oz2pNqHMbBm2HHAnI").getSheetByName("Anuncios").getLastRow();
-        const urlImagen = SpreadsheetApp.openById("1xp9vXf3mwy8284O59loACSuvG5oz2pNqHMbBm2HHAnI").getSheetByName("Anuncios").getRange(ultimaFila, 3).getValue();
+      // OBTENER EL ÚLTIMO ANUNCIO (usando acción "listar")
+      const listarRes = await fetch('https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec?accion=listar&tipo=anuncio');
+      const data = await listarRes.json();
 
-        resultado.innerHTML = `
-          <div class="msg success">
-            <strong>¡Anuncio guardado!</strong><br>
-            ID: ${json.id}<br>
-            <a href="${urlImagen}" target="_blank">Ver imagen subida</a>
-          </div>`;
+      if (data.status === "success" && data.data.length > 0) {
+        const ultimo = data.data[data.data.length - 1]; // Última fila
+        const imagenURL = ultimo[2]; // Columna 3 = Imagen
+        const id = ultimo[8]; // Columna 9 = ID
+
+        mostrar('success', `
+          ¡Anuncio guardado!<br>
+          ID: <strong>${id}</strong><br>
+          <a href="${imagenURL}" target="_blank">Ver imagen subida</a>
+        `);
       } else {
-        resultado.innerHTML = `<div class="msg error">Error: ${json.message || 'Desconocido'}</div>`;
+        mostrar('error', 'Guardado, pero no se pudo obtener el enlace');
       }
 
     } catch (err) {
-      resultado.innerHTML = `<div class="msg error">Error: ${err.message}</div>`;
       console.error(err);
+      mostrar('error', 'Error de conexión. Intenta de nuevo.');
     }
-  });
+  };
 </script>
 
 </body>
