@@ -1,145 +1,171 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>📢 Subir Anuncio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publicar Anuncio</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
+      font-family: 'Poppins', sans-serif;
+      background: #f7f9fc;
+      padding: 30px;
       color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
     }
-    .container {
-      background: white;
+    .contenedor {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
       padding: 20px;
-      border-radius: 10px;
-      width: 400px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
       text-align: center;
+      margin-bottom: 15px;
+      color: #0077cc;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 10px;
     }
     input, textarea {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
       border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      margin-top: 5px;
     }
     button {
-      background: #4CAF50;
+      background: #0077cc;
       color: white;
+      padding: 12px;
       border: none;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 20px;
       font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
     }
     button:hover {
-      background: #45a049;
+      background: #005fa3;
+    }
+    .preview {
+      margin-top: 15px;
+      text-align: center;
     }
     img {
       max-width: 100%;
-      border-radius: 10px;
-      margin-top: 10px;
+      border-radius: 12px;
     }
-    #resultado {
+    .mensaje {
       margin-top: 15px;
+      text-align: center;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>📢 Nuevo Anuncio</h2>
-    <input type="text" id="titulo" placeholder="Título del anuncio" required>
-    <textarea id="descripcion" placeholder="Descripción..." rows="3" required></textarea>
-    <input type="text" id="autor" placeholder="Autor" required>
-    <input type="email" id="correo" placeholder="Correo" required>
-    <input type="file" id="imagen" accept="image/*" required>
-    <img id="preview" style="display:none;">
-    <button onclick="subirAnuncio()">📤 Guardar Anuncio</button>
-    <div id="resultado"></div>
+  <div class="contenedor">
+    <h2>📢 Publicar Anuncio</h2>
+    <label>Título</label>
+    <input type="text" id="titulo" placeholder="Escribe un título" required />
+
+    <label>Descripción</label>
+    <textarea id="descripcion" rows="4" placeholder="Describe tu anuncio..." required></textarea>
+
+    <label>Imagen</label>
+    <input type="file" id="imagen" accept="image/*" />
+    <div class="preview"><img id="previewImg" src="" /></div>
+
+    <label>Tu nombre</label>
+    <input type="text" id="autor" placeholder="Tu nombre" />
+
+    <label>Tu correo</label>
+    <input type="email" id="correo" placeholder="Correo del autor" />
+
+    <button id="btnPublicar">📤 Publicar Anuncio</button>
+
+    <div id="mensaje" class="mensaje"></div>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
+    const scriptURL = "PASTE_AQUI_TU_URL_WEBAPP"; // ← reemplaza esto
 
-    document.getElementById("imagen").addEventListener("change", (e) => {
-      const file = e.target.files[0];
+    const fileInput = document.getElementById("imagen");
+    const previewImg = document.getElementById("previewImg");
+    const btnPublicar = document.getElementById("btnPublicar");
+    const mensaje = document.getElementById("mensaje");
+
+    let base64Imagen = "";
+
+    // Mostrar vista previa de la imagen
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById("preview").src = evt.target.result;
-          document.getElementById("preview").style.display = "block";
+        reader.onload = function (e) {
+          base64Imagen = e.target.result.split(",")[1];
+          previewImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
     });
 
-    async function subirAnuncio() {
+    btnPublicar.addEventListener("click", async () => {
       const titulo = document.getElementById("titulo").value.trim();
       const descripcion = document.getElementById("descripcion").value.trim();
       const autor = document.getElementById("autor").value.trim();
       const correo = document.getElementById("correo").value.trim();
-      const imagenInput = document.getElementById("imagen").files[0];
-      const resultado = document.getElementById("resultado");
 
-      if (!titulo || !descripcion || !autor || !correo || !imagenInput) {
-        resultado.textContent = "⚠️ Faltan datos.";
-        resultado.style.color = "red";
+      if (!titulo || !descripcion || !autor || !correo || !base64Imagen) {
+        mensaje.textContent = "⚠️ Por favor completa todos los campos.";
+        mensaje.style.color = "red";
         return;
       }
 
-      resultado.textContent = "⏳ Subiendo imagen...";
-      resultado.style.color = "gray";
-
-      // Convertir imagen a base64
-      const base64 = await toBase64(imagenInput);
-      const imagen = base64.split(",")[1]; // Quitamos el encabezado "data:image/..."
+      btnPublicar.disabled = true;
+      mensaje.textContent = "⏳ Subiendo anuncio...";
+      mensaje.style.color = "#0077cc";
 
       const data = {
         accion: "guardar",
         tipo: "anuncio",
         titulo,
         descripcion,
-        imagen,
+        imagen: base64Imagen,
         autor,
         correo
       };
 
       try {
-        const res = await fetch(SCRIPT_URL, {
+        const res = await fetch(scriptURL, {
           method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
+          body: JSON.stringify(data)
         });
+        const result = await res.json();
 
-        const json = await res.json();
-        if (json.status === "success") {
-          resultado.innerHTML = `✅ ${json.message}<br>
-          <a href="https://drive.google.com/uc?export=view&id=${json.id}" target="_blank">📎 Ver en Drive</a>`;
-          resultado.style.color = "green";
+        if (result.status === "success") {
+          mensaje.textContent = "✅ Anuncio publicado correctamente.";
+          mensaje.style.color = "green";
+          document.getElementById("titulo").value = "";
+          document.getElementById("descripcion").value = "";
+          document.getElementById("autor").value = "";
+          document.getElementById("correo").value = "";
+          previewImg.src = "";
+          base64Imagen = "";
         } else {
-          resultado.textContent = "❌ Error: " + json.message;
-          resultado.style.color = "red";
+          mensaje.textContent = "❌ Error al guardar: " + result.message;
+          mensaje.style.color = "red";
         }
       } catch (err) {
-        resultado.textContent = "💥 Error al conectar: " + err;
-        resultado.style.color = "red";
+        mensaje.textContent = "🚫 Error en la conexión.";
+        mensaje.style.color = "red";
       }
-    }
-
-    function toBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-      });
-    }
+      btnPublicar.disabled = false;
+    });
   </script>
 </body>
 </html>
