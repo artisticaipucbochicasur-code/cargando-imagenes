@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Publicar Anuncio</title>
+  <title>📢 Publicar Anuncio</title>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -81,7 +81,7 @@
     <div class="preview"><img id="previewImg" src="" /></div>
 
     <label>Tu nombre</label>
-    <input type="text" id="autor" placeholder="Tu nombre" />
+    <input type="text" id="autor" placeholder="Tu nombreD" />
 
     <label>Tu correo</label>
     <input type="email" id="correo" placeholder="Correo del autor" />
@@ -92,7 +92,7 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec"; // ← reemplaza esto
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
 
     const fileInput = document.getElementById("imagen");
     const previewImg = document.getElementById("previewImg");
@@ -101,7 +101,7 @@
 
     let base64Imagen = "";
 
-    // Mostrar vista previa de la imagen
+    // Mostrar vista previa
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
       if (file) {
@@ -143,13 +143,16 @@
       try {
         const res = await fetch(scriptURL, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
+
         const result = await res.json();
 
         if (result.status === "success") {
-          mensaje.textContent = "✅ Anuncio publicado correctamente.";
+          mensaje.innerHTML = `✅ Anuncio publicado correctamente.<br>🆔 ID: ${result.id}`;
           mensaje.style.color = "green";
+
           document.getElementById("titulo").value = "";
           document.getElementById("descripcion").value = "";
           document.getElementById("autor").value = "";
@@ -161,7 +164,7 @@
           mensaje.style.color = "red";
         }
       } catch (err) {
-        mensaje.textContent = "🚫 Error en la conexión.";
+        mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
         mensaje.style.color = "red";
       }
       btnPublicar.disabled = false;
@@ -169,4 +172,3 @@
   </script>
 </body>
 </html>
-
