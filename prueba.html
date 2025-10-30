@@ -65,66 +65,68 @@
       text-align: center;
       font-weight: bold;
     }
-
-    /* Barra de progreso */
-    #progressContainer {
-      width: 100%;
-      background: #eee;
-      border-radius: 10px;
-      height: 10px;
+    /* Estilos para la barra de progreso */
+    .progress-container {
       margin-top: 15px;
-      display: none;
-      overflow: hidden;
+      display: none; /* Oculta por defecto */
     }
-    #progressBar {
-      width: 0%;
-      height: 100%;
+    progress {
+      width: 100%;
+      height: 12px;
+      border-radius: 6px;
+      background: #e0e0e0;
+    }
+    progress::-webkit-progress-bar {
+      background: #e0e0e0;
+      border-radius: 6px;
+    }
+    progress::-webkit-progress-value {
       background: #0077cc;
+      border-radius: 6px;
       transition: width 0.2s ease;
+    }
+    progress::-moz-progress-bar {
+      background: #0077cc;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <div class="contenedor">
-    <h2>Publicar Anuncio</h2>
+    <h2>📢 Publicar Anuncio</h2>
     <label>Título</label>
     <input type="text" id="titulo" placeholder="Escribe un título" required />
-
     <label>Descripción</label>
     <textarea id="descripcion" rows="4" placeholder="Describe tu anuncio..." required></textarea>
-
     <label>Imagen</label>
     <input type="file" id="imagen" accept="image/*" />
     <div class="preview"><img id="previewImg" src="" /></div>
-
-    <!-- 🔹 Barra de progreso agregada -->
-    <div id="progressContainer">
-      <div id="progressBar"></div>
-    </div>
-
     <label>Tu nombre</label>
     <input type="text" id="autor" placeholder="Tu nombre" />
-
     <label>Tu correo</label>
     <input type="email" id="correo" placeholder="Correo del autor" />
+    
+    <!-- Barra de progreso -->
+    <div class="progress-container" id="progressContainer">
+      <progress id="progressBar" value="0" max="100"></progress>
+      <div style="text-align: center; margin-top: 5px; font-size: 14px; color: #0077cc;">
+        <span id="progressText">0%</span>
+      </div>
+    </div>
 
     <button id="btnPublicar">📤 Publicar Anuncio</button>
-
     <div id="mensaje" class="mensaje"></div>
   </div>
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
-
     const fileInput = document.getElementById("imagen");
     const previewImg = document.getElementById("previewImg");
     const btnPublicar = document.getElementById("btnPublicar");
     const mensaje = document.getElementById("mensaje");
-
-    // 🎯 Referencias para la barra
     const progressContainer = document.getElementById("progressContainer");
     const progressBar = document.getElementById("progressBar");
-
+    const progressText = document.getElementById("progressText");
     let base64Imagen = "";
 
     // Vista previa y conversión a Base64
@@ -158,8 +160,10 @@
 
       // Mostrar barra de progreso
       progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
+      progressBar.value = 0;
+      progressText.textContent = "0%";
 
+      // Enviar con XMLHttpRequest para tener control del progreso
       const formData = new FormData();
       formData.append("accion", "guardar");
       formData.append("tipo", "anuncio");
@@ -169,27 +173,22 @@
       formData.append("autor", autor);
       formData.append("correo", correo);
 
-      // Usar XMLHttpRequest para mostrar progreso
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", scriptURL, true);
 
-      xhr.upload.onprogress = (e) => {
+      // Evento de progreso
+      xhr.upload.addEventListener("progress", function (e) {
         if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          progressBar.style.width = percent + "%";
+          const percentComplete = Math.round((e.loaded / e.total) * 100);
+          progressBar.value = percentComplete;
+          progressText.textContent = percentComplete + "%";
         }
-      };
+      });
 
-      xhr.onload = () => {
+      xhr.addEventListener("load", function () {
         if (xhr.status === 200) {
           mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
           mensaje.style.color = "green";
-          progressBar.style.width = "100%";
-          setTimeout(() => {
-            progressContainer.style.display = "none";
-            progressBar.style.width = "0%";
-          }, 1200);
-
+          // Limpiar formulario
           document.getElementById("titulo").value = "";
           document.getElementById("descripcion").value = "";
           document.getElementById("autor").value = "";
@@ -197,20 +196,22 @@
           previewImg.src = "";
           base64Imagen = "";
         } else {
-          mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
+          mensaje.textContent = "🚫 Error del servidor. Intenta de nuevo.";
           mensaje.style.color = "red";
-          progressContainer.style.display = "none";
         }
+        // Ocultar barra
+        progressContainer.style.display = "none";
         btnPublicar.disabled = false;
-      };
+      });
 
-      xhr.onerror = () => {
-        mensaje.textContent = "🚫 Error en la conexión.";
+      xhr.addEventListener("error", function () {
+        mensaje.textContent = "🚫 Error en la conexión. Verifica tu red.";
         mensaje.style.color = "red";
         progressContainer.style.display = "none";
         btnPublicar.disabled = false;
-      };
+      });
 
+      xhr.open("POST", scriptURL);
       xhr.send(formData);
     });
   </script>
