@@ -66,27 +66,27 @@
       font-weight: bold;
     }
 
-    /* 🎯 Estilo de la barra de progreso */
-    .progress-container {
+    /* Barra de progreso */
+    #progressContainer {
       width: 100%;
-      background-color: #eee;
+      background: #eee;
       border-radius: 10px;
-      overflow: hidden;
+      height: 10px;
       margin-top: 15px;
-      height: 12px;
       display: none;
+      overflow: hidden;
     }
-    .progress-bar {
-      height: 100%;
+    #progressBar {
       width: 0%;
-      background-color: #0077cc;
-      transition: width 0.3s ease;
+      height: 100%;
+      background: #0077cc;
+      transition: width 0.2s ease;
     }
   </style>
 </head>
 <body>
   <div class="contenedor">
-    <h2>📢 Publicar Anuncio</h2>
+    <h2>Publicar Anuncio</h2>
     <label>Título</label>
     <input type="text" id="titulo" placeholder="Escribe un título" required />
 
@@ -97,9 +97,9 @@
     <input type="file" id="imagen" accept="image/*" />
     <div class="preview"><img id="previewImg" src="" /></div>
 
-    <!-- 🔹 Barra de progreso -->
-    <div class="progress-container">
-      <div class="progress-bar" id="progressBar"></div>
+    <!-- 🔹 Barra de progreso agregada -->
+    <div id="progressContainer">
+      <div id="progressBar"></div>
     </div>
 
     <label>Tu nombre</label>
@@ -120,7 +120,9 @@
     const previewImg = document.getElementById("previewImg");
     const btnPublicar = document.getElementById("btnPublicar");
     const mensaje = document.getElementById("mensaje");
-    const progressContainer = document.querySelector(".progress-container");
+
+    // 🎯 Referencias para la barra
+    const progressContainer = document.getElementById("progressContainer");
     const progressBar = document.getElementById("progressBar");
 
     let base64Imagen = "";
@@ -167,13 +169,13 @@
       formData.append("autor", autor);
       formData.append("correo", correo);
 
-      // Enviar usando XMLHttpRequest para obtener progreso
+      // Usar XMLHttpRequest para mostrar progreso
       const xhr = new XMLHttpRequest();
       xhr.open("POST", scriptURL, true);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
           progressBar.style.width = percent + "%";
         }
       };
@@ -183,19 +185,17 @@
           mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
           mensaje.style.color = "green";
           progressBar.style.width = "100%";
+          setTimeout(() => {
+            progressContainer.style.display = "none";
+            progressBar.style.width = "0%";
+          }, 1200);
 
-          // Limpiar formulario
           document.getElementById("titulo").value = "";
           document.getElementById("descripcion").value = "";
           document.getElementById("autor").value = "";
           document.getElementById("correo").value = "";
           previewImg.src = "";
           base64Imagen = "";
-
-          setTimeout(() => {
-            progressContainer.style.display = "none";
-            progressBar.style.width = "0%";
-          }, 1500);
         } else {
           mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
           mensaje.style.color = "red";
@@ -205,7 +205,7 @@
       };
 
       xhr.onerror = () => {
-        mensaje.textContent = "🚫 Error al conectar con el servidor.";
+        mensaje.textContent = "🚫 Error en la conexión.";
         mensaje.style.color = "red";
         progressContainer.style.display = "none";
         btnPublicar.disabled = false;
