@@ -66,7 +66,7 @@
       font-weight: bold;
     }
 
-    /* Barra de progreso */
+    /* 🔹 Barra de progreso */
     #progressContainer {
       width: 100%;
       background: #eee;
@@ -86,7 +86,7 @@
 </head>
 <body>
   <div class="contenedor">
-    <h2>📢 Publicar Anuncio</h2>
+    <h2>Publicar Anuncio</h2>
     <label>Título</label>
     <input type="text" id="titulo" placeholder="Escribe un título" required />
 
@@ -97,7 +97,7 @@
     <input type="file" id="imagen" accept="image/*" />
     <div class="preview"><img id="previewImg" src="" /></div>
 
-    <!-- 🔹 Barra de progreso agregada -->
+    <!-- ✅ Barra de progreso compatible -->
     <div id="progressContainer">
       <div id="progressBar"></div>
     </div>
@@ -120,8 +120,6 @@
     const previewImg = document.getElementById("previewImg");
     const btnPublicar = document.getElementById("btnPublicar");
     const mensaje = document.getElementById("mensaje");
-
-    // 🎯 Referencias para la barra
     const progressContainer = document.getElementById("progressContainer");
     const progressBar = document.getElementById("progressBar");
 
@@ -156,9 +154,18 @@
       mensaje.textContent = "⏳ Subiendo anuncio...";
       mensaje.style.color = "#0077cc";
 
-      // Mostrar barra de progreso
+      // Mostrar barra
       progressContainer.style.display = "block";
       progressBar.style.width = "0%";
+
+      // Simulación de progreso visual
+      let progreso = 0;
+      const intervalo = setInterval(() => {
+        if (progreso < 90) {
+          progreso += Math.random() * 10;
+          progressBar.style.width = Math.min(progreso, 90) + "%";
+        }
+      }, 200);
 
       const formData = new FormData();
       formData.append("accion", "guardar");
@@ -169,49 +176,35 @@
       formData.append("autor", autor);
       formData.append("correo", correo);
 
-      // Usar XMLHttpRequest para mostrar progreso
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", scriptURL, true);
+      try {
+        const response = await fetch(scriptURL, { method: "POST", body: formData });
+        const result = await response.text();
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          progressBar.style.width = percent + "%";
-        }
-      };
+        clearInterval(intervalo);
+        progressBar.style.width = "100%";
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
-          mensaje.style.color = "green";
-          progressBar.style.width = "100%";
-          setTimeout(() => {
-            progressContainer.style.display = "none";
-            progressBar.style.width = "0%";
-          }, 1200);
+        mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
+        mensaje.style.color = "green";
 
-          document.getElementById("titulo").value = "";
-          document.getElementById("descripcion").value = "";
-          document.getElementById("autor").value = "";
-          document.getElementById("correo").value = "";
-          previewImg.src = "";
-          base64Imagen = "";
-        } else {
-          mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
-          mensaje.style.color = "red";
+        setTimeout(() => {
           progressContainer.style.display = "none";
-        }
-        btnPublicar.disabled = false;
-      };
+          progressBar.style.width = "0%";
+        }, 1000);
 
-      xhr.onerror = () => {
-        mensaje.textContent = "🚫 Error en la conexión.";
+        document.getElementById("titulo").value = "";
+        document.getElementById("descripcion").value = "";
+        document.getElementById("autor").value = "";
+        document.getElementById("correo").value = "";
+        previewImg.src = "";
+        base64Imagen = "";
+      } catch (err) {
+        clearInterval(intervalo);
+        mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
         mensaje.style.color = "red";
         progressContainer.style.display = "none";
-        btnPublicar.disabled = false;
-      };
+      }
 
-      xhr.send(formData);
+      btnPublicar.disabled = false;
     });
   </script>
 </body>
