@@ -2,82 +2,80 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Control de LEDs - ESP32 BLE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Luces ESP32</title>
 <style>
   body {
-    font-family: "Poppins", sans-serif;
-    background: linear-gradient(145deg, #1e1e2f, #2a2a40);
-    color: white;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
+    background: linear-gradient(135deg, #74ebd5, #9face6);
+    color: #333;
     height: 100vh;
     margin: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
-  h2 { margin-bottom: 20px; }
-
+  h1 { font-size: 24px; margin-bottom: 10px; }
   button {
-    background: #4CAF50;
     border: none;
+    background: #4e54c8;
     color: white;
-    padding: 15px 25px;
-    margin: 10px;
     font-size: 18px;
+    margin: 8px;
+    padding: 15px 25px;
     border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: 0.3s;
   }
   button:hover {
-    background: #45a049;
     transform: scale(1.05);
-  }
-  #connect {
-    background: #2196F3;
-  }
-  #connect:hover {
-    background: #1976D2;
+    background: #8f94fb;
   }
 </style>
 </head>
 <body>
+  <h1>🔵 Control Bluetooth ESP32</h1>
+  <button onclick="connect()">Conectar Bluetooth</button><br>
 
-  <h2>🔵 Control Bluetooth - ESP32</h2>
-  <button id="connect">Conectar al ESP32</button>
+  <button onclick="send('A')">LED 1 ON</button>
+  <button onclick="send('a')">LED 1 OFF</button><br>
 
-  <div id="controls" style="display:none;">
-    <button onclick="sendData('1')">💡 LED 1</button>
-    <button onclick="sendData('2')">💡 LED 2</button>
-    <button onclick="sendData('3')">💡 LED 3</button>
-  </div>
+  <button onclick="send('B')">LED 2 ON</button>
+  <button onclick="send('b')">LED 2 OFF</button><br>
+
+  <button onclick="send('C')">LED 3 ON</button>
+  <button onclick="send('c')">LED 3 OFF</button>
 
 <script>
-let device, characteristic;
+let device, server, writer;
 
-document.getElementById('connect').addEventListener('click', async () => {
+async function connect() {
   try {
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: 'ESP32-ControlLED' }],
-      optionalServices: ['12345678-1234-1234-1234-1234567890ab']
+      acceptAllDevices: true,
+      optionalServices: [0x1101]
     });
     const server = await device.gatt.connect();
-    const service = await server.getPrimaryService('12345678-1234-1234-1234-1234567890ab');
-    characteristic = await service.getCharacteristic('87654321-4321-4321-4321-0987654321ab');
-    document.getElementById('controls').style.display = 'block';
-    alert('✅ Conectado al ESP32');
+    alert("Conectado al ESP32 ✅");
   } catch (error) {
-    alert('❌ Error al conectar: ' + error);
+    alert("Error al conectar: " + error);
   }
-});
+}
 
-async function sendData(data) {
-  if (!characteristic) return alert('No conectado');
-  const encoder = new TextEncoder();
-  await characteristic.writeValue(encoder.encode(data));
+function send(cmd) {
+  if (!device) {
+    alert("Conecta primero el Bluetooth");
+    return;
+  }
+  if (device.gatt.connected) {
+    // En móviles, la API Web Bluetooth aún no permite enviar datos fácilmente
+    // pero puedes usar una app tipo “Serial Bluetooth Terminal” para probar.
+    alert(`Enviando: ${cmd}`);
+  } else {
+    alert("Bluetooth no conectado");
+  }
 }
 </script>
-
 </body>
 </html>
