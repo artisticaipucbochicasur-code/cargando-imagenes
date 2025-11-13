@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Encuentra el animal</title>
+<title>La Aventura de los Animalitos</title>
 <style>
   body {
     font-family: Comic Sans MS, sans-serif;
     text-align: center;
     background-color: #fff3c4;
+    transition: background-color 1s;
   }
   h1 {
     color: #ff6f00;
@@ -35,7 +36,7 @@
     color: #00897b;
     transition: opacity 0.5s;
   }
-  #inicio {
+  #inicio, #siguienteNivel {
     margin-top: 20px;
     background-color: #ff6f00;
     color: white;
@@ -45,68 +46,144 @@
     font-size: 22px;
     cursor: pointer;
   }
+  #siguienteNivel {
+    display: none;
+  }
+  .nivel {
+    font-size: 24px;
+    color: #4e342e;
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
-  <h1>🐾 ¡Encuentra el <span id="nombre"></span>! 🐾</h1>
+  <h1>🐾 ¡La Aventura de los Animalitos! 🐾</h1>
+  <div class="nivel" id="nivel">Nivel 1: La Granja 🐮</div>
   <button id="inicio">Comenzar 🎵</button>
-  <div class="animales" style="display:none;">
-    <div class="animal" data-nombre="perro">🐶</div>
-    <div class="animal" data-nombre="gato">🐱</div>
-    <div class="animal" data-nombre="vaca">🐮</div>
-    <div class="animal" data-nombre="oso">🐻</div>
-    <div class="animal" data-nombre="cerdo">🐷</div>
-  </div>
+  <button id="siguienteNivel">Siguiente Nivel ➡️</button>
+  <div class="animales" style="display:none;" id="zonaAnimales"></div>
   <div class="mensaje" id="mensaje"></div>
 
-  <!-- Sonidos cortos y confiables -->
+  <!-- Sonidos -->
   <audio id="sound-ok" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
   <audio id="sound-error" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
   <audio id="sound-applause" src="https://actions.google.com/sounds/v1/crowds/applause.ogg"></audio>
+  <audio id="sound-level" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
 
 <script>
-const animales = document.querySelectorAll('.animal');
-const nombres = ["perro", "gato", "vaca", "oso", "cerdo"];
-let animalCorrecto = "";
+const niveles = [
+  { nombre: "Nivel 1: La Granja 🐮", color: "#fff3c4", animales: [
+      {nombre:"perro", emoji:"🐶"},
+      {nombre:"vaca", emoji:"🐮"},
+      {nombre:"cerdo", emoji:"🐷"}
+    ]},
+  { nombre: "Nivel 2: El Bosque 🌳", color: "#d0f8ce", animales: [
+      {nombre:"oso", emoji:"🐻"},
+      {nombre:"búho", emoji:"🦉"},
+      {nombre:"zorro", emoji:"🦊"}
+    ]},
+  { nombre: "Nivel 3: El Mar 🌊", color: "#c3e8ff", animales: [
+      {nombre:"pez", emoji:"🐠"},
+      {nombre:"delfín", emoji:"🐬"},
+      {nombre:"tortuga", emoji:"🐢"}
+    ]},
+  { nombre: "Nivel 4: La Selva 🌴", color: "#d0ffcc", animales: [
+      {nombre:"león", emoji:"🦁"},
+      {nombre:"mono", emoji:"🐵"},
+      {nombre:"elefante", emoji:"🐘"}
+    ]}
+];
+
 const mensaje = document.getElementById("mensaje");
 const soundOk = document.getElementById("sound-ok");
 const soundError = document.getElementById("sound-error");
 const soundApplause = document.getElementById("sound-applause");
+const soundLevel = document.getElementById("sound-level");
 const botonInicio = document.getElementById("inicio");
-const contenedorAnimales = document.querySelector(".animales");
+const botonNivel = document.getElementById("siguienteNivel");
+const zona = document.getElementById("zonaAnimales");
+const etiquetaNivel = document.getElementById("nivel");
 let sonidosHabilitados = false;
+let nivelActual = 0;
+let objetivo = "";
+let aciertos = 0;
+
+function cargarNivel() {
+  document.body.style.backgroundColor = niveles[nivelActual].color;
+  etiquetaNivel.textContent = niveles[nivelActual].nombre;
+  zona.innerHTML = "";
+  mensaje.textContent = "";
+  aciertos = 0;
+  botonNivel.style.display = "none";
+  
+  niveles[nivelActual].animales.forEach(animal => {
+    const div = document.createElement("div");
+    div.className = "animal";
+    div.dataset.nombre = animal.nombre;
+    div.textContent = animal.emoji;
+    zona.appendChild(div);
+  });
+
+  zona.style.display = "flex";
+  nuevoReto();
+}
 
 function nuevoReto() {
-  const aleatorio = nombres[Math.floor(Math.random() * nombres.length)];
-  animalCorrecto = aleatorio;
-  document.getElementById("nombre").textContent = aleatorio;
-  mensaje.textContent = "";
+  const lista = niveles[nivelActual].animales;
+  const aleatorio = lista[Math.floor(Math.random() * lista.length)];
+  objetivo = aleatorio.nombre;
+  mensaje.style.color = "#00897b";
+  mensaje.textContent = `Encuentra el ${objetivo}`;
 }
 
 botonInicio.addEventListener("click", () => {
   sonidosHabilitados = true;
-  contenedorAnimales.style.display = "flex";
   botonInicio.style.display = "none";
-  nuevoReto();
+  cargarNivel();
 });
 
-animales.forEach(a => {
-  a.addEventListener('click', () => {
-    if (!sonidosHabilitados) return; // por si el navegador bloquea antes del clic inicial
+botonNivel.addEventListener("click", () => {
+  nivelActual++;
+  if (nivelActual < niveles.length) {
+    soundLevel.play();
+    cargarNivel();
+  } else {
+    mensaje.textContent = "🏆 ¡Completaste toda la aventura!";
+    mensaje.style.color = "purple";
+    zona.style.display = "none";
+    botonNivel.style.display = "none";
+    soundApplause.play();
+  }
+});
 
-    if (a.dataset.nombre === animalCorrecto) {
-      mensaje.textContent = "🎉 ¡Excelente!";
-      mensaje.style.color = "green";
-      soundOk.play();
-      setTimeout(() => soundApplause.play(), 600);
-      setTimeout(nuevoReto, 2000);
+zona.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("animal")) return;
+  if (!sonidosHabilitados) return;
+
+  const nombre = e.target.dataset.nombre;
+  if (nombre === objetivo) {
+    mensaje.textContent = "🎉 ¡Excelente!";
+    mensaje.style.color = "green";
+    soundOk.play();
+    aciertos++;
+
+    if (aciertos === niveles[nivelActual].animales.length) {
+      setTimeout(() => {
+        soundApplause.play();
+        mensaje.textContent = "⭐ ¡Nivel superado!";
+        mensaje.style.color = "orange";
+        botonNivel.style.display = "inline-block";
+      }, 1000);
     } else {
-      mensaje.textContent = "❌ ¡Oh oh!";
-      mensaje.style.color = "red";
-      soundError.play();
-      setTimeout(() => { mensaje.textContent = ""; }, 1000);
+      setTimeout(nuevoReto, 1500);
     }
-  });
+
+  } else {
+    mensaje.textContent = "❌ ¡Oh oh!";
+    mensaje.style.color = "red";
+    soundError.play();
+    setTimeout(() => { mensaje.textContent = `Encuentra el ${objetivo}`; }, 1000);
+  }
 });
 </script>
 </body>
