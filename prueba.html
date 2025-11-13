@@ -17,12 +17,14 @@
     flex-direction: column;
     color: #333;
   }
+
   h1 {
     font-size: 26px;
     margin-bottom: 20px;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
+
   #connectBtn {
     background: #4e54c8;
     border: none;
@@ -34,15 +36,18 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     transition: 0.3s;
   }
-  #tBtn:hover {
+
+  #connectBtn:hover {
     background: #8f94fb;
     transform: scale(1.05);
   }
+
   .led-container {
     margin-top: 30px;
     display: flex;
     gap: 20px;
   }
+
   .switch {
     width: 100px;
     height: 100px;
@@ -59,19 +64,38 @@
     cursor: pointer;
     transition: 0.3s;
   }
+
   .switch.on {
     background: #00c853;
     box-shadow: 0 0 20px rgba(0,200,83,0.5);
   }
+
   .switch:active {
     transform: scale(0.95);
+  }
+
+  /* Indicador de conexión */
+  #statusIndicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: red;
+    margin-top: 15px;
+    box-shadow: 0 0 10px rgba(255,0,0,0.6);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  #statusIndicator.connected {
+    background: #00c853;
+    box-shadow: 0 0 15px rgba(0,200,83,0.8);
   }
 </style>
 </head>
 <body>
 
-  <h1>ESP32</h1>
-  <button id="tBtn" onclick="tBluetooth()">🔗 Conectar</button>
+  <h1>💡 Control Luces ESP32</h1>
+  <button id="connectBtn" onclick="connectBluetooth()">🔗 Conectar</button>
+  <div id="statusIndicator" title="Estado de conexión"></div>
 
   <div class="led-container">
     <div id="led1" class="switch" onclick="toggleLed(1)">LED 1<br>OFF</div>
@@ -98,13 +122,23 @@ async function connectBluetooth() {
     characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
 
     alert("✅ Conectado a " + device.name);
-    document.getElementById("connectBtn").innerText = "🔌 Conectado";
-    document.getElementById("connectBtn").disabled = true;
+    const btn = document.getElementById("connectBtn");
+    btn.innerText = "🔌 Conectado";
+    btn.disabled = true;
+
+    document.getElementById("statusIndicator").classList.add("connected");
+
+    // Si el dispositivo se desconecta
+    device.addEventListener('gattserverdisconnected', () => {
+      document.getElementById("statusIndicator").classList.remove("connected");
+      btn.innerText = "🔗 Reconectar";
+      btn.disabled = false;
+    });
+
   } catch (error) {
     alert("❌ Error o cancelado: " + error);
   }
 }
-
 
 async function sendCommand(cmd) {
   if (!characteristic) {
@@ -133,6 +167,3 @@ function toggleLed(num) {
 
 </body>
 </html>
-
-
-
