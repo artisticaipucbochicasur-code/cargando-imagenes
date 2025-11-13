@@ -1,211 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📢 Publicar Anuncio</title>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f7f9fc;
-      padding: 30px;
-      color: #333;
-    }
-    .contenedor {
-      max-width: 500px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 15px;
-      color: #0077cc;
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 10px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      margin-top: 5px;
-    }
-    button {
-      background: #0077cc;
-      color: white;
-      padding: 12px;
-      border: none;
-      width: 100%;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #005fa3;
-    }
-    .preview {
-      margin-top: 15px;
-      text-align: center;
-    }
-    img {
-      max-width: 100%;
-      border-radius: 12px;
-    }
-    .mensaje {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    /* 🔹 Barra de progreso */
-    #progressContainer {
-      width: 100%;
-      background: #eee;
-      border-radius: 10px;
-      height: 10px;
-      margin-top: 15px;
-      display: none;
-      overflow: hidden;
-    }
-    #progressBar {
-      width: 0%;
-      height: 100%;
-      background: #0077cc;
-      transition: width 0.2s ease;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuentra el animal</title>
+<style>
+  body {
+    font-family: Comic Sans MS, sans-serif;
+    text-align: center;
+    background-color: #fff3c4;
+  }
+  h1 {
+    color: #ff6f00;
+  }
+  .animales {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 30px;
+  }
+  .animal {
+    font-size: 80px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .animal:hover {
+    transform: scale(1.2);
+  }
+  .mensaje {
+    margin-top: 20px;
+    font-size: 28px;
+    color: #00897b;
+  }
+</style>
 </head>
 <body>
-  <div class="contenedor">
-    <h2>Publicar Anuncio</h2>
-    <label>Título</label>
-    <input type="text" id="titulo" placeholder="Escribe un título" required />
-
-    <label>Descripción</label>
-    <textarea id="descripcion" rows="4" placeholder="Describe tu anuncio..." required></textarea>
-
-    <label>Imagen</label>
-    <input type="file" id="imagen" accept="image/*" />
-    <div class="preview"><img id="previewImg" src="" /></div>
-
-    <!-- ✅ Barra de progreso compatible -->
-    <div id="progressContainer">
-      <div id="progressBar"></div>
-    </div>
-
-    <label>Tu nombre</label>
-    <input type="text" id="autor" placeholder="Tu nombre" />
-
-    <label>Tu correo</label>
-    <input type="email" id="correo" placeholder="Correo del autor" />
-
-    <button id="btnPublicar">📤 Publicar Anuncio</button>
-
-    <div id="mensaje" class="mensaje"></div>
+  <h1>🐾 ¡Encuentra el <span id="nombre"></span>! 🐾</h1>
+  <div class="animales">
+    <div class="animal" data-nombre="perro">🐶</div>
+    <div class="animal" data-nombre="gato">🐱</div>
+    <div class="animal" data-nombre="vaca">🐮</div>
+    <div class="animal" data-nombre="oso">🐻</div>
+    <div class="animal" data-nombre="cerdo">🐷</div>
   </div>
+  <div class="mensaje" id="mensaje"></div>
 
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwyY6m3H8WD494cnoQbNXwspsZtD1sGu97yio9mk9DTozGSuyo6gHXB1W6HArcpYfP2/exec";
+<script>
+const animales = document.querySelectorAll('.animal');
+const nombres = ["perro", "gato", "vaca", "oso", "cerdo"];
+let animalCorrecto = "";
 
-    const fileInput = document.getElementById("imagen");
-    const previewImg = document.getElementById("previewImg");
-    const btnPublicar = document.getElementById("btnPublicar");
-    const mensaje = document.getElementById("mensaje");
-    const progressContainer = document.getElementById("progressContainer");
-    const progressBar = document.getElementById("progressBar");
+function nuevoReto() {
+  const aleatorio = nombres[Math.floor(Math.random() * nombres.length)];
+  animalCorrecto = aleatorio;
+  document.getElementById("nombre").textContent = aleatorio;
+  document.getElementById("mensaje").textContent = "";
+}
 
-    let base64Imagen = "";
+animales.forEach(a => {
+  a.addEventListener('click', () => {
+    if (a.dataset.nombre === animalCorrecto) {
+      document.getElementById("mensaje").textContent = "🎉 ¡Muy bien! Es el " + animalCorrecto + "!";
+      document.getElementById("mensaje").style.color = "green";
+      setTimeout(nuevoReto, 1500);
+    } else {
+      document.getElementById("mensaje").textContent = "❌ Intenta otra vez...";
+      document.getElementById("mensaje").style.color = "red";
+    }
+  });
+});
 
-    // Vista previa y conversión a Base64
-    fileInput.addEventListener("change", function () {
-      const file = this.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          base64Imagen = e.target.result.split(",")[1];
-          previewImg.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    btnPublicar.addEventListener("click", async () => {
-      const titulo = document.getElementById("titulo").value.trim();
-      const descripcion = document.getElementById("descripcion").value.trim();
-      const autor = document.getElementById("autor").value.trim();
-      const correo = document.getElementById("correo").value.trim();
-
-      if (!titulo || !descripcion || !autor || !correo || !base64Imagen) {
-        mensaje.textContent = "⚠️ Por favor completa todos los campos.";
-        mensaje.style.color = "red";
-        return;
-      }
-
-      btnPublicar.disabled = true;
-      mensaje.textContent = "⏳ Subiendo anuncio...";
-      mensaje.style.color = "#0077cc";
-
-      // Mostrar barra
-      progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
-
-      // Simulación de progreso visual
-      let progreso = 0;
-      const intervalo = setInterval(() => {
-        if (progreso < 90) {
-          progreso += Math.random() * 10;
-          progressBar.style.width = Math.min(progreso, 90) + "%";
-        }
-      }, 200);
-
-      const formData = new FormData();
-      formData.append("accion", "guardar");
-      formData.append("tipo", "anuncio");
-      formData.append("titulo", titulo);
-      formData.append("descripcion", descripcion);
-      formData.append("imagen", base64Imagen);
-      formData.append("autor", autor);
-      formData.append("correo", correo);
-
-      try {
-        const response = await fetch(scriptURL, { method: "POST", body: formData });
-        const result = await response.text();
-
-        clearInterval(intervalo);
-        progressBar.style.width = "100%";
-
-        mensaje.textContent = "✅ Anuncio enviado al servidor. Verifica en la hoja de cálculo.";
-        mensaje.style.color = "green";
-
-        setTimeout(() => {
-          progressContainer.style.display = "none";
-          progressBar.style.width = "0%";
-        }, 1000);
-
-        document.getElementById("titulo").value = "";
-        document.getElementById("descripcion").value = "";
-        document.getElementById("autor").value = "";
-        document.getElementById("correo").value = "";
-        previewImg.src = "";
-        base64Imagen = "";
-      } catch (err) {
-        clearInterval(intervalo);
-        mensaje.textContent = "🚫 Error en la conexión. Verifica tu red o el enlace del script.";
-        mensaje.style.color = "red";
-        progressContainer.style.display = "none";
-      }
-
-      btnPublicar.disabled = false;
-    });
-  </script>
+nuevoReto();
+</script>
 </body>
 </html>
