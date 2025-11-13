@@ -3,164 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control Bluetooth ESP32</title>
+<title>Control de Luces ESP32</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
   body {
-    font-family: 'Poppins', sans-serif;
-    text-align: center;
-    background: linear-gradient(160deg, #74ebd5, #ACB6E5);
-    color: #222;
-    height: 100vh;
     margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #5ee7df, #b490ca);
+    height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: #333;
   }
 
   h1 {
     font-size: 26px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
 
-  #deviceList {
-    margin: 10px auto;
-    max-width: 300px;
-  }
-
-  .device-item {
-    background: white;
-    border-radius: 12px;
-    padding: 12px;
-    margin: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .device-item:hover {
-    background: #dcdcfb;
-  }
-
-  .led-btn {
+  #connectBtn {
+    background: #4e54c8;
     border: none;
-    background: #444;
     color: white;
+    padding: 14px 30px;
+    border-radius: 30px;
     font-size: 18px;
-    margin: 8px;
-    padding: 15px 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    width: 160px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     transition: 0.3s;
   }
-
-  .on {
-    background: #00c851 !important;
-    box-shadow: 0 4px 10px rgba(0,200,81,0.4);
-  }
-
-  button:hover {
+  #connectBtn:hover {
+    background: #8f94fb;
     transform: scale(1.05);
   }
 
-  #status {
-    margin-top: 15px;
-    font-weight: bold;
+  .led-container {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+  }
+
+  .switch {
+    width: 100px;
+    height: 100px;
+    background: #ffffff22;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .switch.on {
+    background: #00c853;
+    box-shadow: 0 0 20px rgba(0,200,83,0.5);
+  }
+
+  .switch:active {
+    transform: scale(0.95);
   }
 </style>
 </head>
 <body>
-  <h1>🔵 Control ESP32 Bluetooth</h1>
-  <button onclick="buscarDispositivos()">🔍 Buscar Bluetooth</button>
+  <h1>💡 Control Bluetooth ESP32</h1>
+  <button id="connectBtn" onclick="connectBluetooth()">🔗 Conectar</button>
 
-  <div id="deviceList"></div>
-
-  <div id="controls" style="display:none;">
-    <button id="led1" class="led-btn" onclick="toggleLED(1)">LED 1 OFF</button>
-    <button id="led2" class="led-btn" onclick="toggleLED(2)">LED 2 OFF</button>
-    <button id="led3" class="led-btn" onclick="toggleLED(3)">LED 3 OFF</button>
+  <div class="led-container">
+    <div id="led1" class="switch" onclick="toggleLed(1)">LED 1<br>OFF</div>
+    <div id="led2" class="switch" onclick="toggleLed(2)">LED 2<br>OFF</div>
+    <div id="led3" class="switch" onclick="toggleLed(3)">LED 3<br>OFF</div>
   </div>
 
-  <div id="status">Sin conexión</div>
-
 <script>
-let dispositivo, servidor, writer;
-let ledStates = [false, false, false];
+let device;
+let writer;
+let leds = {1: false, 2: false, 3: false};
 
-async function buscarDispositivos() {
-  document.getElementById("deviceList").innerHTML = "Buscando dispositivos...";
-
+async function connectBluetooth() {
   try {
-    const conocidos = await navigator.bluetooth.getDevices();
-    const listaHTML = [];
-
-    if (conocidos.length > 0) {
-      listaHTML.push("<h3>📱 Dispositivos guardados:</h3>");
-      conocidos.forEach(d => {
-        listaHTML.push(`<div class='device-item' onclick='conectarGuardado("${d.id}")'>${d.name || "Sin nombre"}</div>`);
-      });
-    }
-
-    listaHTML.push("<h3>📡 Dispositivos nuevos:</h3>");
-    const nuevo = await navigator.bluetooth.requestDevice({
+    device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [0x1101]
     });
-
-    listaHTML.push(`<div class='device-item' onclick='conectar("${nuevo.id}")'>${nuevo.name}</div>`);
-
-    document.getElementById("deviceList").innerHTML = listaHTML.join('');
+    const server = await device.gatt.connect();
+    alert("✅ Conectado a " + device.name);
   } catch (error) {
-    document.getElementById("deviceList").innerHTML = "Error o cancelado: " + error;
+    alert("❌ Error o cancelado: " + error);
   }
 }
 
-async function conectarGuardado(id) {
-  try {
-    const devices = await navigator.bluetooth.getDevices();
-    dispositivo = devices.find(d => d.id === id);
-    if (dispositivo) {
-      await dispositivo.gatt.connect();
-      iniciarControles(dispositivo);
-    }
-  } catch (err) {
-    alert("No se pudo reconectar: " + err);
-  }
-}
-
-async function conectar(id) {
-  try {
-    const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: [0x1101]
-    });
-    dispositivo = device;
-    await dispositivo.gatt.connect();
-    iniciarControles(dispositivo);
-  } catch (error) {
-    alert("Error al conectar: " + error);
-  }
-}
-
-function iniciarControles(device) {
-  document.getElementById("status").textContent = "✅ Conectado a " + device.name;
-  document.getElementById("controls").style.display = "block";
-}
-
-function toggleLED(num) {
-  if (!dispositivo) {
-    alert("Conéctate primero al ESP32");
-    return;
-  }
-
-  const cmd = ledStates[num - 1] ? String.fromCharCode(96 + num) : String.fromCharCode(64 + num);
-  ledStates[num - 1] = !ledStates[num - 1];
-  const btn = document.getElementById("led" + num);
-  btn.textContent = ledStates[num - 1] ? `LED ${num} ON` : `LED ${num} OFF`;
-  btn.classList.toggle("on", ledStates[num - 1]);
-
-  // Por limitaciones del Web Bluetooth con Serial clásico,
-  // aquí simulamos el envío (funciona si usas BLE o app Serial real)
+function sendCommand(cmd) {
+  // Este método no envía realmente los datos en móviles por limitación Web Bluetooth,
+  // pero puedes probarlo con “Serial Bluetooth Terminal” para verificar la conexión.
   console.log("Enviar comando:", cmd);
+}
+
+function toggleLed(num) {
+  leds[num] = !leds[num];
+  const el = document.getElementById("led" + num);
+  el.classList.toggle("on");
+  el.innerHTML = `LED ${num}<br>${leds[num] ? "ON" : "OFF"}`;
+  const cmd = leds[num] ? String.fromCharCode(64 + num) : String.fromCharCode(96 + num);
+  sendCommand(cmd);
 }
 </script>
 </body>
