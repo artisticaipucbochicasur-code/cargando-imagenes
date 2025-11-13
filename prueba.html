@@ -206,12 +206,35 @@ async function connectToDevice(dev) {
   try {
     server = await dev.gatt.connect();
     service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
-    characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
-    device = dev;
 
+    // 🔹 Características de escritura y lectura
+    characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
+    const statusChar = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
+
+    device = dev;
     btn.classList.add("connected");
     showToast("✅ Conectado a " + device.name);
 
+    // 🔔 Escuchar actualizaciones de estado
+    await statusChar.startNotifications();
+    statusChar.addEventListener("characteristicvaluechanged", (event) => {
+      const value = new TextDecoder().decode(event.target.value);
+      if (value.startsWith("S")) {
+        const s = value.substring(1);
+        for (let i = 0; i < 3; i++) {
+          const num = i + 1;
+          const state = s[i] === "1";
+          leds[num] = state;
+          const el = document.getElementById("led" + num);
+          const icon = el.querySelector("i");
+          el.classList.toggle("on", state);
+          icon.className = state ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
+        }
+        updateAllButton();
+      }
+    });
+
+    // 🔌 Manejar desconexión
     device.addEventListener("gattserverdisconnected", () => {
       btn.classList.remove("connected");
       showToast("🔌 Desconectado");
@@ -299,3 +322,4 @@ function updateAllButton() {
 </script>
 </body>
 </html>
+
