@@ -60,7 +60,7 @@
     flex-wrap: wrap;
     gap: 25px;
     margin-top: 30px;
-    margin-bottom: 25px; /* 🔹 reduce el espacio extra antes del botón global */
+    margin-bottom: 25px;
   }
 
   .switch {
@@ -88,7 +88,6 @@
     box-shadow: 0 0 20px rgba(0,255,100,0.6);
   }
 
-  /* 🌈 Botón global */
   #toggleAllBtn {
     background: rgba(255,255,255,0.15);
     border: none;
@@ -100,7 +99,7 @@
     backdrop-filter: blur(10px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     transition: 0.3s;
-    margin-bottom: 25px; /* 🔹 menos espacio inferior */
+    margin-bottom: 25px;
   }
 
   #toggleAllBtn:hover {
@@ -207,6 +206,12 @@ async function sendCommand(cmd) {
 }
 
 function toggleLed(num) {
+  // 🔹 Si no está conectado, no hacer cambios visuales
+  if (!characteristic || !device || !device.gatt.connected) {
+    showToast("⚠️ No conectado al ESP32");
+    return;
+  }
+
   leds[num] = !leds[num];
   const el = document.getElementById("led" + num);
   const icon = el.querySelector("i");
@@ -221,13 +226,17 @@ function toggleLed(num) {
 }
 
 async function toggleAll() {
+  // 🔹 Si no está conectado, no hacer cambios visuales
+  if (!characteristic || !device || !device.gatt.connected) {
+    showToast("⚠️ No conectado al ESP32");
+    return;
+  }
+
   const allOnNow = Object.values(leds).every(v => v);
   const allOffNow = Object.values(leds).every(v => !v);
 
-  // 🔹 Determinar acción real: si todas están encendidas -> apagar, si hay alguna apagada -> encender todas
   const turnOn = !allOnNow;
 
-  // Si ya estaban todas encendidas y se intenta "encender todas" otra vez, no hace nada
   if (turnOn && allOnNow) {
     showToast("💡 Las luces ya están encendidas");
     return;
