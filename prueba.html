@@ -2,79 +2,37 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Las Aventuras de Elízabeth</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #aee1f9;
-    font-family: "Comic Sans MS", sans-serif;
-    user-select: none;
-    touch-action: none;
-  }
-  canvas {
-    background-size: cover;
-    background-position: center;
-  }
-  #controls {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 5;
-  }
-  button {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,0.7);
-    font-size: 24px;
-  }
-  #message {
-    position: fixed;
-    top: 10px;
-    width: 100%;
-    text-align: center;
-    font-size: 24px;
-    color: #fff;
-    text-shadow: 2px 2px 4px #000;
-  }
-  #menu {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(#8fd3f4, #84fab0);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  #menu h1 {
-    font-size: 36px;
-    color: #fff;
-    text-shadow: 2px 2px 6px #000;
-  }
-  #menu button {
-    margin-top: 15px;
-    font-size: 20px;
-    padding: 10px 20px;
-    border-radius: 10px;
-  }
+  body {margin:0; overflow:hidden; background:#aee1f9; font-family:'Comic Sans MS',cursive;}
+  canvas {display:block; margin:0 auto; background-size:cover; background-position:center;}
+  #controls {position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:15px;z-index:10;}
+  button {width:60px;height:60px;border:none;border-radius:50%;font-size:24px;background:rgba(255,255,255,0.8);}
+  #message {position:fixed;top:10px;left:0;width:100%;text-align:center;font-size:22px;color:#fff;text-shadow:2px 2px 4px #000;}
+  #menu {position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#9be2fe,#67d1fb);display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  #menu h1 {font-size:36px;color:white;text-shadow:2px 2px 6px #000;}
+  #menu button {font-size:20px;padding:10px 20px;border-radius:10px;}
+  #finalScreen {position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(#a0e7e5,#b4f8c8);display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+  #finalScreen h1 {font-size:34px;color:#333;}
+  #finalScreen p {font-size:22px;}
 </style>
 </head>
 <body>
+
 <div id="menu">
   <h1>🌸 Las Aventuras de Elízabeth 🌸</h1>
-  <button onclick="startGame()">Comenzar aventura</button>
+  <button onclick="startGame()">Comenzar</button>
+</div>
+
+<div id="finalScreen">
+  <h1>🎉 ¡Felicitaciones, Elízabeth! 🎉</h1>
+  <p>Completaste tu gran aventura 🌈</p>
+  <audio id="finalMusic" src="https://cdn.pixabay.com/download/audio/2023/02/28/audio_ae1d4a5d68.mp3?filename=happiness-140186.mp3" autoplay loop></audio>
 </div>
 
 <canvas id="game" width="360" height="640"></canvas>
 <div id="message"></div>
-
 <div id="controls">
   <button id="left">⬅️</button>
   <button id="up">⬆️</button>
@@ -82,119 +40,111 @@
   <button id="right">➡️</button>
 </div>
 
+<!-- sonidos -->
 <audio id="okSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_0f8723a118.mp3?filename=success-1-6297.mp3"></audio>
 <audio id="errorSound" src="https://cdn.pixabay.com/download/audio/2021/08/09/audio_1e52b8447d.mp3?filename=oh-no-113105.mp3"></audio>
-<audio id="clapSound" src="https://cdn.pixabay.com/download/audio/2021/09/01/audio_44b67a3d63.mp3?filename=applause-3-16978.mp3"></audio>
+<audio id="clapSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_14c67ee568.mp3?filename=small-crowd-applause-6973.mp3"></audio>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const msg = document.getElementById("message");
 const menu = document.getElementById("menu");
-
-let level = 1;
-let playing = false;
-let collected = 0;
+const finalScreen = document.getElementById("finalScreen");
+let level = 1, collected = 0, playing = false;
 
 const levels = [
-  { bg: "https://i.imgur.com/tlW1f3T.png", goal: "flores", count: 3 },
-  { bg: "https://i.imgur.com/ZbZ5yhk.png", goal: "ayudar al conejo", count: 2 },
-  { bg: "https://i.imgur.com/z2jZzTk.png", goal: "cruzar el río", count: 4 },
-  { bg: "https://i.imgur.com/9C0b3Oh.png", goal: "entregar la carta", count: 2 },
-  { bg: "https://i.imgur.com/VUjbbhQ.png", goal: "encontrar la gema", count: 1 },
-  { bg: "https://i.imgur.com/fqVDJKd.png", goal: "subir la montaña", count: 3 },
-  { bg: "https://i.imgur.com/5DPU8Ae.png", goal: "encender antorchas", count: 3 },
-  { bg: "https://i.imgur.com/YwQxIn2.png", goal: "encontrar la llave", count: 1 },
-  { bg: "https://i.imgur.com/m50Z3PH.png", goal: "atrapar estrellas", count: 5 },
-  { bg: "https://i.imgur.com/GcSmh5v.png", goal: "llegar a casa", count: 0 },
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Forest_path_in_summer_woods.jpg/640px-Forest_path_in_summer_woods.jpg",goal:"Recoge las flores",count:3,color:"pink"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Spring_meadow_with_trees.jpg/640px-Spring_meadow_with_trees.jpg",goal:"Ayuda al conejito",count:2,color:"white"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/River_in_the_forest.jpg/640px-River_in_the_forest.jpg",goal:"Cruza el río",count:4,color:"lightblue"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Village_in_Tuscany.jpg/640px-Village_in_Tuscany.jpg",goal:"Entrega la carta",count:3,color:"yellow"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Limestone_Cave_in_Japan.jpg/640px-Limestone_Cave_in_Japan.jpg",goal:"Encuentra la gema",count:1,color:"cyan"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Mountains_and_lake.jpg/640px-Mountains_and_lake.jpg",goal:"Escala la montaña",count:3,color:"gray"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Dark_forest_path.jpg/640px-Dark_forest_path.jpg",goal:"Enciende antorchas",count:3,color:"orange"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Neuschwanstein_Castle_-_View_from_Marienbr%C3%BCcke_2.jpg/640px-Neuschwanstein_Castle_-_View_from_Marienbr%C3%BCcke_2.jpg",goal:"Encuentra la llave",count:2,color:"gold"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Sunset_cloudscape.jpg/640px-Sunset_cloudscape.jpg",goal:"Atrapa las estrellas",count:5,color:"lightyellow"},
+  {bg:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Country_House_in_Scotland.jpg/640px-Country_House_in_Scotland.jpg",goal:"Llega a casa",count:0,color:"pink"}
 ];
 
-let player = { x: 150, y: 500, w: 40, h: 60, speed: 5, img: new Image() };
-player.img.src = "https://i.imgur.com/h5Qrr4R.png"; // Elízabeth
+const player = {x:150,y:500,w:40,h:60,img:new Image(),speed:5};
+player.img.src="https://cdn.pixabay.com/photo/2023/03/06/13/07/girl-7833473_640.png";
 
 let items = [];
 
-function startGame() {
-  menu.style.display = "none";
-  playing = true;
+function startGame(){
+  menu.style.display="none";
+  finalScreen.style.display="none";
+  level=1; playing=true;
   loadLevel(level);
 }
 
-function loadLevel(n) {
-  const lvl = levels[n - 1];
-  collected = 0;
-  items = [];
-  for (let i = 0; i < lvl.count; i++) {
-    items.push({
-      x: Math.random() * 300 + 20,
-      y: Math.random() * 500 + 50,
-      w: 30,
-      h: 30,
-      color: "yellow",
-    });
+function loadLevel(n){
+  const lvl=levels[n-1];
+  collected=0; items=[];
+  for(let i=0;i<lvl.count;i++){
+    items.push({x:Math.random()*300+20,y:Math.random()*500+50,w:30,h:30,color:lvl.color});
   }
-  canvas.style.backgroundImage = `url(${lvl.bg})`;
-  msg.innerText = `Nivel ${n}: ${lvl.goal}`;
+  canvas.style.backgroundImage=`url(${lvl.bg})`;
+  msg.innerText=`Nivel ${n}: ${lvl.goal}`;
 }
 
-function draw() {
-  if (!playing) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(player.img, player.x, player.y, player.w, player.h);
-
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.font = "18px Comic Sans MS";
-  ctx.fillText(`Flores: ${collected}/${levels[level - 1].count}`, 10, 20);
-
-  ctx.fillStyle = "pink";
-  items.forEach(it => ctx.fillRect(it.x, it.y, it.w, it.h));
+function draw(){
+  if(!playing)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(player.img,player.x,player.y,player.w,player.h);
+  ctx.fillStyle="rgba(255,255,255,0.7)";
+  ctx.font="18px Comic Sans MS";
+  ctx.fillText(`${collected}/${levels[level-1].count}`,10,20);
+  items.forEach(it=>{
+    ctx.fillStyle=it.color;
+    ctx.beginPath();
+    ctx.arc(it.x,it.y,15,0,Math.PI*2);
+    ctx.fill();
+  });
 }
 
-function update() {
-  if (!playing) return;
-  items = items.filter(it => {
-    if (player.x < it.x + it.w && player.x + player.w > it.x &&
-        player.y < it.y + it.h && player.y + player.h > it.y) {
+function update(){
+  if(!playing)return;
+  items=items.filter(it=>{
+    if(player.x<it.x+it.w&&player.x+player.w>it.x&&player.y<it.y+it.h&&player.y+player.h>it.y){
       collected++;
       document.getElementById("okSound").play();
-      if (collected >= levels[level - 1].count) {
-        levelUp();
-      }
+      if(collected>=levels[level-1].count){levelUp();}
       return false;
     }
     return true;
   });
 }
 
-function levelUp() {
+function levelUp(){
   document.getElementById("clapSound").play();
-  msg.innerText = `¡Excelente Elízabeth! Completaste el nivel ${level}!`;
-  setTimeout(() => {
-    if (level < 10) {
-      level++;
-      loadLevel(level);
-    } else {
-      msg.innerText = "🎉 ¡Felicidades Elízabeth, completaste la aventura! 🎉";
-      playing = false;
-    }
-  }, 2000);
+  msg.innerText=`¡Excelente, Elízabeth! Nivel ${level} completado 🎉`;
+  setTimeout(()=>{
+    if(level<10){level++;loadLevel(level);}
+    else{endGame();}
+  },2000);
 }
 
-function move(dir) {
-  if (!playing) return;
-  if (dir === "left" && player.x > 0) player.x -= player.speed;
-  if (dir === "right" && player.x < canvas.width - player.w) player.x += player.speed;
-  if (dir === "up" && player.y > 0) player.y -= player.speed;
-  if (dir === "down" && player.y < canvas.height - player.h) player.y += player.speed;
-  update();
-  draw();
+function endGame(){
+  playing=false;
+  finalScreen.style.display="flex";
+  document.getElementById("finalMusic").play();
 }
 
-["left","right","up","down"].forEach(id => {
-  document.getElementById(id).addEventListener("touchstart", () => move(id));
+function move(dir){
+  if(!playing)return;
+  if(dir==="left"&&player.x>0)player.x-=player.speed;
+  if(dir==="right"&&player.x<canvas.width-player.w)player.x+=player.speed;
+  if(dir==="up"&&player.y>0)player.y-=player.speed;
+  if(dir==="down"&&player.y<canvas.height-player.h)player.y+=player.speed;
+  update(); draw();
+}
+
+["left","right","up","down"].forEach(id=>{
+  document.getElementById(id).addEventListener("touchstart",()=>move(id));
 });
 
-setInterval(draw, 50);
+setInterval(draw,50);
 </script>
 </body>
 </html>
