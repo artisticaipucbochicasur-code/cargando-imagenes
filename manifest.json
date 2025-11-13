@@ -1,6 +1,6 @@
 {
   "name": "Luces ESP32 BLE",
-  "short_name": "ESP32 Luces",
+  "short_name": "Luces DH",
   "description": "Controla las luces de tu ESP32 vía Bluetooth Low Energy",
   "start_url": "prueba.html",
   "display": "standalone",
@@ -20,3 +20,4 @@
     }
   ]
 }
+
