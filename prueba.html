@@ -35,11 +35,22 @@
     color: #00897b;
     transition: opacity 0.5s;
   }
+  #inicio {
+    margin-top: 20px;
+    background-color: #ff6f00;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 15px;
+    font-size: 22px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
   <h1>🐾 ¡Encuentra el <span id="nombre"></span>! 🐾</h1>
-  <div class="animales">
+  <button id="inicio">Comenzar 🎵</button>
+  <div class="animales" style="display:none;">
     <div class="animal" data-nombre="perro">🐶</div>
     <div class="animal" data-nombre="gato">🐱</div>
     <div class="animal" data-nombre="vaca">🐮</div>
@@ -48,10 +59,10 @@
   </div>
   <div class="mensaje" id="mensaje"></div>
 
-  <!-- Sonidos -->
-  <audio id="sound-ok" src="https://cdn.pixabay.com/audio/2022/03/15/audio_0bfc0c1f5f.mp3"></audio>
-  <audio id="sound-error" src="https://cdn.pixabay.com/audio/2022/03/15/audio_c2b2e1b941.mp3"></audio>
-  <audio id="sound-applause" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2a3d7a3e53.mp3"></audio>
+  <!-- Sonidos cortos y confiables -->
+  <audio id="sound-ok" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+  <audio id="sound-error" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="sound-applause" src="https://actions.google.com/sounds/v1/crowds/applause.ogg"></audio>
 
 <script>
 const animales = document.querySelectorAll('.animal');
@@ -61,6 +72,9 @@ const mensaje = document.getElementById("mensaje");
 const soundOk = document.getElementById("sound-ok");
 const soundError = document.getElementById("sound-error");
 const soundApplause = document.getElementById("sound-applause");
+const botonInicio = document.getElementById("inicio");
+const contenedorAnimales = document.querySelector(".animales");
+let sonidosHabilitados = false;
 
 function nuevoReto() {
   const aleatorio = nombres[Math.floor(Math.random() * nombres.length)];
@@ -69,13 +83,22 @@ function nuevoReto() {
   mensaje.textContent = "";
 }
 
+botonInicio.addEventListener("click", () => {
+  sonidosHabilitados = true;
+  contenedorAnimales.style.display = "flex";
+  botonInicio.style.display = "none";
+  nuevoReto();
+});
+
 animales.forEach(a => {
   a.addEventListener('click', () => {
+    if (!sonidosHabilitados) return; // por si el navegador bloquea antes del clic inicial
+
     if (a.dataset.nombre === animalCorrecto) {
       mensaje.textContent = "🎉 ¡Excelente!";
       mensaje.style.color = "green";
       soundOk.play();
-      setTimeout(() => soundApplause.play(), 500);
+      setTimeout(() => soundApplause.play(), 600);
       setTimeout(nuevoReto, 2000);
     } else {
       mensaje.textContent = "❌ ¡Oh oh!";
@@ -85,8 +108,6 @@ animales.forEach(a => {
     }
   });
 });
-
-nuevoReto();
 </script>
 </body>
 </html>
