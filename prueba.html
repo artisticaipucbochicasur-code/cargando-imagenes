@@ -34,7 +34,7 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     transition: 0.3s;
   }
-  #connectBtn:hover {
+  #tBtn:hover {
     background: #8f94fb;
     transform: scale(1.05);
   }
@@ -71,7 +71,7 @@
 <body>
 
   <h1>ESP32</h1>
-  <button id="connectBtn" onclick="connectBluetooth()">🔗 Conectar</button>
+  <button id="tBtn" onclick="tBluetooth()">🔗 Conectar</button>
 
   <div class="led-container">
     <div id="led1" class="switch" onclick="toggleLed(1)">LED 1<br>OFF</div>
@@ -89,7 +89,7 @@ let leds = {1: false, 2: false, 3: false};
 async function connectBluetooth() {
   try {
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: 'ESP32_Luces_BLE' }],
+      acceptAllDevices: true, // 🔹 Muestra todos los BLE disponibles
       optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
     });
 
@@ -104,6 +104,7 @@ async function connectBluetooth() {
     alert("❌ Error o cancelado: " + error);
   }
 }
+
 
 async function sendCommand(cmd) {
   if (!characteristic) {
@@ -132,5 +133,6 @@ function toggleLed(num) {
 
 </body>
 </html>
+
 
 
