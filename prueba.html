@@ -93,10 +93,7 @@
     text-align: center;
     box-shadow: 0 5px 20px rgba(0,0,0,0.4);
   }
-  .modal-content h2 {
-    margin-top: 0;
-    color: #fff;
-  }
+  .modal-content h2 { margin-top: 0; color: #fff; }
   #deviceList {
     margin-top: 10px;
     max-height: 200px;
@@ -113,11 +110,17 @@
     border: none; color: white; padding: 5px 10px;
     border-radius: 8px; cursor: pointer;
   }
-  .modal-content button.close {
+  .modal-content button.close,
+  .modal-content button.disconnect {
     margin-top: 15px;
     background: rgba(255,80,80,0.3);
     border: none; color: white; padding: 8px 16px;
     border-radius: 8px; cursor: pointer;
+    width: 100%;
+  }
+  .modal-content button.disconnect {
+    background: rgba(255,150,50,0.4);
+    margin-bottom: 8px;
   }
 </style>
 </head>
@@ -151,9 +154,10 @@
 <!-- 🌐 Modal de selección de dispositivo -->
 <div id="deviceModal">
   <div class="modal-content">
-    <h2>Seleccionar dispositivo</h2>
-    <button onclick="scanDevices()">🔍 Buscar dispositivos</button>
+    <h2>Bluetooth</h2>
+    <button id="scanBtn" onclick="scanDevices()">🔍 Buscar dispositivos</button>
     <div id="deviceList"></div>
+    <button id="disconnectBtn" class="disconnect" style="display:none;" onclick="disconnectDevice()">🔌 Desconectar</button>
     <button class="close" onclick="closeDeviceModal()">Cancelar</button>
   </div>
 </div>
@@ -170,7 +174,12 @@ function showToast(msg) {
 }
 
 // --- Modal control ---
-function openDeviceModal() { document.getElementById("deviceModal").classList.add("active"); }
+function openDeviceModal() {
+  const modal = document.getElementById("deviceModal");
+  const disconnectBtn = document.getElementById("disconnectBtn");
+  modal.classList.add("active");
+  disconnectBtn.style.display = (device && device.gatt.connected) ? "block" : "none";
+}
 function closeDeviceModal() { document.getElementById("deviceModal").classList.remove("active"); }
 
 // --- Escaneo y conexión personalizada ---
@@ -203,7 +212,6 @@ async function connectToDevice(dev) {
     btn.classList.add("connected");
     showToast("✅ Conectado a " + device.name);
 
-    // manejar desconexión
     device.addEventListener("gattserverdisconnected", () => {
       btn.classList.remove("connected");
       showToast("🔌 Desconectado");
@@ -211,6 +219,18 @@ async function connectToDevice(dev) {
 
   } catch (error) {
     showToast("⚠️ Error al conectar: " + error.message);
+  }
+}
+
+// --- 🔌 Desconexión manual ---
+function disconnectDevice() {
+  if (device && device.gatt.connected) {
+    device.gatt.disconnect();
+    document.getElementById("connectBtn").classList.remove("connected");
+    showToast("🔌 Desconectado manualmente");
+    closeDeviceModal();
+  } else {
+    showToast("⚠️ No hay conexión activa");
   }
 }
 
