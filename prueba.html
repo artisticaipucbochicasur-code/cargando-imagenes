@@ -17,14 +17,12 @@
     flex-direction: column;
     color: #333;
   }
-
   h1 {
     font-size: 26px;
     margin-bottom: 20px;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
-
   #connectBtn {
     background: #4e54c8;
     border: none;
@@ -40,13 +38,11 @@
     background: #8f94fb;
     transform: scale(1.05);
   }
-
   .led-container {
     margin-top: 30px;
     display: flex;
     gap: 20px;
   }
-
   .switch {
     width: 100px;
     height: 100px;
@@ -63,18 +59,17 @@
     cursor: pointer;
     transition: 0.3s;
   }
-
   .switch.on {
     background: #00c853;
     box-shadow: 0 0 20px rgba(0,200,83,0.5);
   }
-
   .switch:active {
     transform: scale(0.95);
   }
 </style>
 </head>
 <body>
+
   <h1>💡 Control Bluetooth ESP32</h1>
   <button id="connectBtn" onclick="connectBluetooth()">🔗 Conectar</button>
 
@@ -86,26 +81,25 @@
 
 <script>
 let device;
+let server;
+let service;
 let characteristic;
 let leds = {1: false, 2: false, 3: false};
 
-// mismos UUIDs que en Arduino
-const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-
 async function connectBluetooth() {
   try {
-    console.log("Solicitando dispositivo BLE...");
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: 'ESP32_Luces' }],
-      optionalServices: [SERVICE_UUID]
+      filters: [{ name: 'ESP32_Luces_BLE' }],
+      optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
     });
 
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(SERVICE_UUID);
-    characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
+    characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
 
     alert("✅ Conectado a " + device.name);
+    document.getElementById("connectBtn").innerText = "🔌 Conectado";
+    document.getElementById("connectBtn").disabled = true;
   } catch (error) {
     alert("❌ Error o cancelado: " + error);
   }
@@ -113,15 +107,15 @@ async function connectBluetooth() {
 
 async function sendCommand(cmd) {
   if (!characteristic) {
-    alert("⚠️ No hay conexión BLE establecida.");
+    alert("⚠️ Conéctate primero al ESP32");
     return;
   }
   try {
     const data = new TextEncoder().encode(cmd);
     await characteristic.writeValue(data);
-    console.log("Comando enviado:", cmd);
+    console.log("✅ Comando enviado:", cmd);
   } catch (error) {
-    console.error("Error enviando comando:", error);
+    console.error("❌ Error al enviar:", error);
   }
 }
 
@@ -130,9 +124,11 @@ function toggleLed(num) {
   const el = document.getElementById("led" + num);
   el.classList.toggle("on");
   el.innerHTML = `LED ${num}<br>${leds[num] ? "ON" : "OFF"}`;
+
   const cmd = leds[num] ? String.fromCharCode(64 + num) : String.fromCharCode(96 + num);
   sendCommand(cmd);
 }
 </script>
+
 </body>
 </html>
