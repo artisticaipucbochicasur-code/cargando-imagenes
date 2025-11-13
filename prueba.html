@@ -30,8 +30,10 @@
   }
   .mensaje {
     margin-top: 20px;
-    font-size: 28px;
+    font-size: 30px;
+    font-weight: bold;
     color: #00897b;
+    transition: opacity 0.5s;
   }
 </style>
 </head>
@@ -46,27 +48,40 @@
   </div>
   <div class="mensaje" id="mensaje"></div>
 
+  <!-- Sonidos -->
+  <audio id="sound-ok" src="https://cdn.pixabay.com/audio/2022/03/15/audio_0bfc0c1f5f.mp3"></audio>
+  <audio id="sound-error" src="https://cdn.pixabay.com/audio/2022/03/15/audio_c2b2e1b941.mp3"></audio>
+  <audio id="sound-applause" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2a3d7a3e53.mp3"></audio>
+
 <script>
 const animales = document.querySelectorAll('.animal');
 const nombres = ["perro", "gato", "vaca", "oso", "cerdo"];
 let animalCorrecto = "";
+const mensaje = document.getElementById("mensaje");
+const soundOk = document.getElementById("sound-ok");
+const soundError = document.getElementById("sound-error");
+const soundApplause = document.getElementById("sound-applause");
 
 function nuevoReto() {
   const aleatorio = nombres[Math.floor(Math.random() * nombres.length)];
   animalCorrecto = aleatorio;
   document.getElementById("nombre").textContent = aleatorio;
-  document.getElementById("mensaje").textContent = "";
+  mensaje.textContent = "";
 }
 
 animales.forEach(a => {
   a.addEventListener('click', () => {
     if (a.dataset.nombre === animalCorrecto) {
-      document.getElementById("mensaje").textContent = "🎉 ¡Muy bien! Es el " + animalCorrecto + "!";
-      document.getElementById("mensaje").style.color = "green";
-      setTimeout(nuevoReto, 1500);
+      mensaje.textContent = "🎉 ¡Excelente!";
+      mensaje.style.color = "green";
+      soundOk.play();
+      setTimeout(() => soundApplause.play(), 500);
+      setTimeout(nuevoReto, 2000);
     } else {
-      document.getElementById("mensaje").textContent = "❌ Intenta otra vez...";
-      document.getElementById("mensaje").style.color = "red";
+      mensaje.textContent = "❌ ¡Oh oh!";
+      mensaje.style.color = "red";
+      soundError.play();
+      setTimeout(() => { mensaje.textContent = ""; }, 1000);
     }
   });
 });
