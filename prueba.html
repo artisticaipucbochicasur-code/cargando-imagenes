@@ -166,6 +166,7 @@
 let device, server, service, characteristic;
 let leds = {1: false, 2: false, 3: false};
 
+// --- Toast ---
 function showToast(msg) {
   const toast = document.getElementById("toast");
   toast.textContent = msg;
@@ -182,40 +183,44 @@ function openDeviceModal() {
 }
 function closeDeviceModal() { document.getElementById("deviceModal").classList.remove("active"); }
 
-// --- Escaneo y conexión personalizada ---
+// --- Escaneo personalizado ---
 async function scanDevices() {
   const list = document.getElementById("deviceList");
-  list.innerHTML = "<p>🔍 Buscando...</p>";
+  list.innerHTML = "<p>🔍 Buscando dispositivos...</p>";
 
   try {
+    // Mostrar el cuadro nativo pero luego reflejar el dispositivo elegido en el modal
     const deviceChosen = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
     });
 
-    await connectToDevice(deviceChosen);
-    closeDeviceModal();
+    // Agregarlo visualmente a la lista personalizada
+    list.innerHTML = `
+      <div class='device-item'>
+        <span>${deviceChosen.name || "Dispositivo sin nombre"}</span>
+        <button onclick='connectToDevice(selectedDevice)'>Conectar</button>
+      </div>`;
+    window.selectedDevice = deviceChosen;
 
   } catch (error) {
-    showToast("❌ Error: " + error.message);
+    list.innerHTML = "<p>⚠️ No se pudo buscar: " + error.message + "</p>";
   }
 }
 
+// --- Conexión ---
 async function connectToDevice(dev) {
   const btn = document.getElementById("connectBtn");
   try {
     server = await dev.gatt.connect();
     service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
-
-    // 🔹 Características de escritura y lectura
     characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
     const statusChar = await service.getCharacteristic('6e400003-b5a3-f393-e0a9-e50e24dcca9e');
-
     device = dev;
     btn.classList.add("connected");
     showToast("✅ Conectado a " + device.name);
+    closeDeviceModal();
 
-    // 🔔 Escuchar actualizaciones de estado
     await statusChar.startNotifications();
     statusChar.addEventListener("characteristicvaluechanged", (event) => {
       const value = new TextDecoder().decode(event.target.value);
@@ -234,7 +239,6 @@ async function connectToDevice(dev) {
       }
     });
 
-    // 🔌 Manejar desconexión
     device.addEventListener("gattserverdisconnected", () => {
       btn.classList.remove("connected");
       showToast("🔌 Desconectado");
@@ -245,73 +249,57 @@ async function connectToDevice(dev) {
   }
 }
 
-// --- 🔌 Desconexión manual ---
+// --- Desconexión ---
 function disconnectDevice() {
   if (device && device.gatt.connected) {
     device.gatt.disconnect();
     document.getElementById("connectBtn").classList.remove("connected");
     showToast("🔌 Desconectado manualmente");
     closeDeviceModal();
-  } else {
-    showToast("⚠️ No hay conexión activa");
-  }
+  } else showToast("⚠️ No hay conexión activa");
 }
 
-// --- Envío y control LEDs ---
+// --- Envío de comandos ---
 async function sendCommand(cmd) {
-  if (!characteristic) {
-    showToast("⚠️ Conéctate primero al ESP32");
-    return;
-  }
+  if (!characteristic) return showToast("⚠️ Conéctate primero");
   try {
-    const data = new TextEncoder().encode(cmd);
-    await characteristic.writeValue(data);
-  } catch {
-    showToast("❌ Error al enviar comando");
-  }
+    await characteristic.writeValue(new TextEncoder().encode(cmd));
+  } catch { showToast("❌ Error al enviar comando"); }
 }
 
+// --- Control individual y total ---
 function toggleLed(num) {
-  if (!characteristic || !device || !device.gatt.connected) {
-    showToast("⚠️ No conectado al ESP32");
-    return;
-  }
+  if (!characteristic || !device || !device.gatt.connected)
+    return showToast("⚠️ No conectado al ESP32");
 
   leds[num] = !leds[num];
   const el = document.getElementById("led" + num);
   const icon = el.querySelector("i");
-
   el.classList.toggle("on", leds[num]);
   icon.className = leds[num] ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
-
   const cmd = leds[num] ? String.fromCharCode(64 + num) : String.fromCharCode(96 + num);
   sendCommand(cmd);
-
   updateAllButton();
 }
 
 async function toggleAll() {
-  if (!characteristic || !device || !device.gatt.connected) {
-    showToast("⚠️ No conectado al ESP32");
-    return;
-  }
+  if (!characteristic || !device || !device.gatt.connected)
+    return showToast("⚠️ No conectado al ESP32");
 
-  const allOnNow = Object.values(leds).every(v => v);
-  const turnOn = !allOnNow;
-
+  const allOn = Object.values(leds).every(v => v);
+  const newState = !allOn;
   for (let i = 1; i <= 3; i++) {
-    leds[i] = turnOn;
+    leds[i] = newState;
     const el = document.getElementById("led" + i);
     const icon = el.querySelector("i");
-    el.classList.toggle("on", turnOn);
-    icon.className = turnOn ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
-    const cmd = turnOn ? String.fromCharCode(64 + i) : String.fromCharCode(96 + i);
+    el.classList.toggle("on", newState);
+    icon.className = newState ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
+    const cmd = newState ? String.fromCharCode(64 + i) : String.fromCharCode(96 + i);
     await sendCommand(cmd);
-    await new Promise(res => setTimeout(res, 200));
+    await new Promise(r => setTimeout(r, 200));
   }
-
   updateAllButton();
-  showToast(turnOn ? "💡 Todas encendidas" : "💤 Todas apagadas");
+  showToast(newState ? "💡 Todas encendidas" : "💤 Todas apagadas");
 }
 
 function updateAllButton() {
@@ -322,4 +310,3 @@ function updateAllButton() {
 </script>
 </body>
 </html>
-
