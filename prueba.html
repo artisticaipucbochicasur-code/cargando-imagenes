@@ -2,138 +2,186 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aventura de Elízabeth la Exploradora</title>
+<title>La Aventura de Elízabeth</title>
 <style>
   body {
     margin: 0;
-    background: linear-gradient(#87cefa, #d0f8ce);
     overflow: hidden;
-    font-family: Comic Sans MS, sans-serif;
-    user-select: none;
+    background: url('https://i.imgur.com/wtVx0mD.png') center/cover no-repeat;
   }
-
-  #juego {
+  #game {
     position: relative;
     width: 100vw;
-    height: 90vh;
-    overflow: hidden;
-    background: url("https://i.imgur.com/lR3XQKX.png") repeat-x;
-    background-size: cover;
+    height: 100vh;
   }
-
-  #personaje {
+  .elizabeth {
     position: absolute;
     bottom: 50px;
     left: 100px;
-    width: 100px;
-    transition: all 0.2s;
+    width: 120px;
+    height: 150px;
+    background: url('https://i.imgur.com/0O2tHkW.png') center/contain no-repeat;
+    transition: left 0.2s, bottom 0.2s;
   }
-
-  #controles {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: grid;
-    grid-template-columns: 60px 60px 60px;
-    grid-template-rows: 60px 60px;
-    gap: 5px;
-    justify-items: center;
-  }
-
-  .btn {
+  .item {
+    position: absolute;
     width: 60px;
     height: 60px;
-    background-color: #ffcc80;
-    border: none;
-    border-radius: 15px;
-    font-size: 30px;
-    cursor: pointer;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
   }
-
-  #arriba { grid-column: 2; grid-row: 1; }
-  #abajo { grid-column: 2; grid-row: 2; }
-  #izquierda { grid-column: 1; grid-row: 2; }
-  #derecha { grid-column: 3; grid-row: 2; }
-
-  #mensaje {
+  #message {
     position: absolute;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: white;
-    padding: 10px 25px;
+    background: rgba(255,255,255,0.8);
+    padding: 15px 25px;
     border-radius: 10px;
     font-size: 24px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    display: none;
+  }
+  #level {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255,255,255,0.7);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
-
-<div id="juego">
-  <div id="mensaje">🌈 ¡Ayuda a Elízabeth a explorar el bosque!</div>
-  <img id="personaje" src="https://i.imgur.com/ID6vQkY.png" alt="Elízabeth">
-</div>
-
-<div id="controles">
-  <button class="btn" id="arriba">⬆️</button>
-  <button class="btn" id="izquierda">⬅️</button>
-  <button class="btn" id="abajo">⬇️</button>
-  <button class="btn" id="derecha">➡️</button>
+<div id="game">
+  <div id="elizabeth" class="elizabeth"></div>
+  <div id="message"></div>
+  <div id="level">Nivel 1: Recoge las flores 🌸</div>
 </div>
 
 <!-- Sonidos -->
-<audio id="paso" src="https://actions.google.com/sounds/v1/foley/footsteps_single.ogg"></audio>
-<audio id="exito" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
+<audio id="pickupSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_86f9e2e3f5.mp3?filename=collect-coin-2-2043.mp3"></audio>
+<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_62cc9b1d57.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="ohnoSound" src="https://cdn.pixabay.com/download/audio/2021/09/23/audio_8e4e8f7ef4.mp3?filename=error-126627.mp3"></audio>
 
 <script>
-const personaje = document.getElementById("personaje");
-const paso = document.getElementById("paso");
-const exito = document.getElementById("exito");
-const mensaje = document.getElementById("mensaje");
-let posX = 100;
-let posY = 50;
+const game = document.getElementById("game");
+const elizabeth = document.getElementById("elizabeth");
+const message = document.getElementById("message");
+const levelText = document.getElementById("level");
+const pickupSound = document.getElementById("pickupSound");
+const winSound = document.getElementById("winSound");
+const ohnoSound = document.getElementById("ohnoSound");
 
-// movimiento
-function mover(dx, dy) {
-  paso.currentTime = 0;
-  paso.play();
+let posX = 100, posY = 50;
+let level = 1;
+let items = [];
 
-  posX += dx;
-  posY += dy;
+function showMessage(text, color="black") {
+  message.style.display = "block";
+  message.style.color = color;
+  message.innerText = text;
+  setTimeout(()=> message.style.display = "none", 2000);
+}
 
-  // límites del juego
-  posX = Math.max(0, Math.min(window.innerWidth - 100, posX));
-  posY = Math.max(0, Math.min(window.innerHeight - 200, posY));
-
-  personaje.style.left = posX + "px";
-  personaje.style.bottom = posY + "px";
-
-  // evento especial
-  if (posX > window.innerWidth - 150) {
-    mensaje.textContent = "🎉 ¡Elízabeth encontró un tesoro escondido!";
-    exito.play();
-    setTimeout(() => mensaje.textContent = "🌈 ¡Ayuda a Elízabeth a explorar el bosque!", 4000);
+function nextLevel() {
+  level++;
+  if (level === 2) {
+    startLevel2();
+  } else if (level === 3) {
+    startLevel3();
+  } else {
+    levelText.innerText = "¡Ganaste el juego! 🎉";
+    showMessage("Excelente, Elízabeth completó la aventura!", "green");
+    winSound.play();
   }
 }
 
-// controles en pantalla
-document.getElementById("arriba").onclick = () => mover(0, 30);
-document.getElementById("abajo").onclick = () => mover(0, -30);
-document.getElementById("izquierda").onclick = () => mover(-30, 0);
-document.getElementById("derecha").onclick = () => mover(30, 0);
+function clearItems() {
+  items.forEach(i => i.remove());
+  items = [];
+}
 
-// controles con teclado
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") mover(0, 30);
-  if (e.key === "ArrowDown") mover(0, -30);
-  if (e.key === "ArrowLeft") mover(-30, 0);
-  if (e.key === "ArrowRight") mover(30, 0);
+// --- Nivel 1: Recoger flores ---
+function startLevel1() {
+  levelText.innerText = "Nivel 1: Recoge las flores 🌸";
+  for (let i = 0; i < 5; i++) {
+    const flower = document.createElement("img");
+    flower.src = "https://i.imgur.com/xl5mQ1J.png";
+    flower.classList.add("item");
+    flower.style.left = Math.random() * (window.innerWidth - 60) + "px";
+    flower.style.bottom = Math.random() * 200 + "px";
+    game.appendChild(flower);
+    items.push(flower);
+  }
+}
+
+// --- Nivel 2: Saltar charcos ---
+function startLevel2() {
+  clearItems();
+  levelText.innerText = "Nivel 2: Evita los charcos 💦";
+  for (let i = 0; i < 4; i++) {
+    const puddle = document.createElement("img");
+    puddle.src = "https://i.imgur.com/3GAD4lD.png";
+    puddle.classList.add("item");
+    puddle.style.left = Math.random() * (window.innerWidth - 60) + "px";
+    puddle.style.bottom = "0px";
+    game.appendChild(puddle);
+    items.push(puddle);
+  }
+}
+
+// --- Nivel 3: Buscar estrellas ---
+function startLevel3() {
+  clearItems();
+  levelText.innerText = "Nivel 3: Encuentra las estrellas ✨";
+  for (let i = 0; i < 6; i++) {
+    const star = document.createElement("img");
+    star.src = "https://i.imgur.com/rCwYh1u.png";
+    star.classList.add("item");
+    star.style.left = Math.random() * (window.innerWidth - 60) + "px";
+    star.style.bottom = Math.random() * 200 + "px";
+    game.appendChild(star);
+    items.push(star);
+  }
+}
+
+function moveElizabeth(dx, dy) {
+  posX += dx;
+  posY += dy;
+  elizabeth.style.left = posX + "px";
+  elizabeth.style.bottom = posY + "px";
+  checkCollisions();
+}
+
+function checkCollisions() {
+  const lizRect = elizabeth.getBoundingClientRect();
+  let collected = 0;
+  items.forEach((item, i) => {
+    const r = item.getBoundingClientRect();
+    if (lizRect.left < r.right && lizRect.right > r.left && lizRect.bottom > r.top && lizRect.top < r.bottom) {
+      if (level === 1 || level === 3) {
+        pickupSound.play();
+        item.remove();
+        items.splice(i, 1);
+        if (items.length === 0) nextLevel();
+      } else if (level === 2) {
+        ohnoSound.play();
+        showMessage("¡Oh no, te mojaste!", "red");
+      }
+    }
+  });
+}
+
+document.addEventListener("keydown", (e)=>{
+  switch(e.key) {
+    case "ArrowRight": moveElizabeth(30,0); break;
+    case "ArrowLeft": moveElizabeth(-30,0); break;
+    case "ArrowUp": moveElizabeth(0,20); break;
+    case "ArrowDown": moveElizabeth(0,-20); break;
+  }
 });
-</script>
 
+// Inicia juego
+startLevel1();
+</script>
 </body>
 </html>
