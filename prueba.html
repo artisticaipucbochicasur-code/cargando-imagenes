@@ -221,8 +221,10 @@ function toggleLed(num) {
   updateAllButton();
 }
 
-function toggleAll() {
+async function toggleAll() {
   allOn = !allOn;
+
+  // 🔹 Espera entre envíos para evitar saturar Bluetooth
   for (let i = 1; i <= 3; i++) {
     leds[i] = allOn;
     const el = document.getElementById("led" + i);
@@ -230,7 +232,9 @@ function toggleAll() {
     el.classList.toggle("on", allOn);
     icon.className = allOn ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
     const cmd = allOn ? String.fromCharCode(64 + i) : String.fromCharCode(96 + i);
-    sendCommand(cmd);
+
+    await sendCommand(cmd);
+    await new Promise(res => setTimeout(res, 200)); // ⏳ Pausa de 200 ms entre comandos
   }
 
   updateAllButton();
