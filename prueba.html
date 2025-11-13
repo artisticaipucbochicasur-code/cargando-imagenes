@@ -1,167 +1,339 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Las Aventuras de Elízabeth</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Aventura de Elízabeth - Nivel 1</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #89cff0;
+  :root{
+    --btn-size: 68px;
   }
-
-  canvas {
-    display: block;
+  html,body{height:100%;margin:0;font-family:"Comic Sans MS",sans-serif;background:#aee1f9;}
+  #stage{
+    position:relative;
+    width:100%;
+    height:100vh;
+    overflow:hidden;
+    background-image: url("https://cdn.pixabay.com/photo/2017/02/07/00/16/forest-2048728_1280.jpg");
     background-size: cover;
     background-position: center;
   }
 
-  #controls {
-    position: fixed;
-    bottom: 20px;
+  /* personaje */
+  #elizabeth {
+    position: absolute;
+    width: 18vw;               /* responsive size */
+    max-width: 140px;
+    min-width: 80px;
+    height: auto;
+    left: 10%;
+    bottom: 12%;
+    transition: left 0.08s, bottom 0.08s;
+    z-index: 6;
+    touch-action: none;
+  }
+
+  /* items (flores) */
+  .item {
+    position: absolute;
+    width: 12vw;
+    max-width: 90px;
+    min-width: 50px;
+    height: auto;
+    z-index: 5;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* mensajes */
+  #message {
+    position: absolute;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    background: rgba(255,255,255,0.85);
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 18px;
+    z-index: 20;
+    display: none;
   }
 
-  button {
-    width: 60px;
-    height: 60px;
+  /* controles */
+  #controls {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: grid;
+    grid-template-columns: var(--btn-size) var(--btn-size) var(--btn-size);
+    grid-template-rows: var(--btn-size) var(--btn-size);
+    gap:8px;
+    align-items:center;
+    justify-items:center;
+    touch-action: manipulation;
+  }
+  .btn {
+    width: var(--btn-size);
+    height: var(--btn-size);
     border-radius: 50%;
     border: none;
-    background: rgba(255,255,255,0.7);
-    font-size: 24px;
-    font-weight: bold;
+    background: rgba(255,255,255,0.9);
+    font-size: 28px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+    user-select:none;
   }
 
-  #message {
-    position: fixed;
-    top: 20px;
-    width: 100%;
-    text-align: center;
-    font-size: 24px;
-    color: #fff;
-    text-shadow: 2px 2px 4px #000;
+  #up { grid-column: 2; grid-row: 1; }
+  #left { grid-column: 1; grid-row: 2; }
+  #down { grid-column: 2; grid-row: 2; }
+  #right{ grid-column: 3; grid-row: 2; }
+
+  /* pantalla inicial */
+  #overlayStart {
+    position: absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25));
+    z-index:30;
+    flex-direction:column;
+  }
+  #overlayStart button {
+    padding: 12px 20px;
+    font-size: 20px;
+    border-radius: 12px;
+    border:none;
+    background:#ff8b80;
+    color:white;
+  }
+  @media(min-width:800px){
+    :root{--btn-size:78px;}
   }
 </style>
 </head>
 <body>
-<canvas id="gameCanvas"></canvas>
-<div id="message"></div>
 
-<div id="controls">
-  <button id="up">↑</button>
-  <div>
-    <button id="left">←</button>
-    <button id="right">→</button>
+<div id="stage">
+  <div id="message">¡Bienvenido! Pulsa Comenzar.</div>
+
+  <!-- personaje -->
+  <img id="elizabeth" src="https://cdn.pixabay.com/photo/2019/11/13/10/56/girl-4625251_1280.png" alt="Elizabeth">
+
+  <!-- items (se crearán con JS) -->
+
+  <!-- pantalla inicial para habilitar audio y mostrar instrucciones -->
+  <div id="overlayStart">
+    <h1 style="color:white; text-shadow:2px 2px 6px #000; margin:0 0 12px 0">🌸 La Aventura de Elízabeth 🌸</h1>
+    <p style="color:white; text-align:center; max-width:80%; margin:0 0 16px 0">Nivel 1: Recoge 5 flores. Usa los botones o desliza en pantalla.</p>
+    <button id="startBtn">Comenzar</button>
   </div>
-  <button id="down">↓</button>
 </div>
 
-<audio id="goodSound" src="https://cdn.pixabay.com/download/audio/2023/07/06/audio_4e4379639c.mp3?filename=applause-14745.mp3"></audio>
-<audio id="badSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0b8cfdfdb2.mp3?filename=uh-oh-10588.mp3"></audio>
+<!-- controles -->
+<div id="controls">
+  <button id="up" class="btn">⬆️</button>
+  <button id="left" class="btn">⬅️</button>
+  <button id="down" class="btn">⬇️</button>
+  <button id="right" class="btn">➡️</button>
+</div>
+
+<!-- sonidos (se reproducirán tras interacción con startBtn) -->
+<audio id="soundPickup" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_7b8ff7b65d.mp3?filename=collectcoin-6075.mp3"></audio>
+<audio id="soundWin" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_62cc9b1d57.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="soundOhNo" src="https://cdn.pixabay.com/download/audio/2021/09/23/audio_8e4e8f7ef4.mp3?filename=error-126627.mp3"></audio>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+/*
+  Versión estable usando <img> absolute — funciona mejor en móviles.
+  - Genera items visibles (flores).
+  - Mueve a Elízabeth con botones o swipe.
+  - Comprueba colisiones con getBoundingClientRect.
+*/
 
-let elizabeth = {
-  x: canvas.width / 2 - 50,
-  y: canvas.height - 200,
-  width: 100,
-  height: 150,
-  img: new Image(),
-  speed: 15
-};
+const stage = document.getElementById('stage');
+const el = document.getElementById('elizabeth');
+const overlay = document.getElementById('overlayStart');
+const message = document.getElementById('message');
 
-elizabeth.img.src = "https://cdn.pixabay.com/photo/2020/12/15/20/57/girl-5833741_1280.png"; // niña aventurera
-
-let background = new Image();
-background.src = "https://cdn.pixabay.com/photo/2017/02/07/00/16/forest-2048728_1280.jpg"; // bosque bonito
+const soundPickup = document.getElementById('soundPickup');
+const soundWin = document.getElementById('soundWin');
+const soundOhNo = document.getElementById('soundOhNo');
 
 let items = [];
 let collected = 0;
-const totalItems = 5;
-let level = 1;
+const target = 5;
+let moveStepX = Math.max(16, Math.round(window.innerWidth * 0.06)); // movimiento adaptativo
+let moveStepY = Math.max(16, Math.round(window.innerHeight * 0.06));
+let audioEnabled = false;
 
-function generateItems() {
+// asegurar que las imágenes carguen: mostrar personaje cuando esté cargada
+el.onload = () => {
+  el.style.visibility = 'visible';
+};
+
+// función de creación de flores
+function createItems() {
+  // limpiar si existían
+  document.querySelectorAll('.item').forEach(n=>n.remove());
   items = [];
-  for (let i = 0; i < totalItems; i++) {
-    items.push({
-      x: Math.random() * (canvas.width - 50),
-      y: Math.random() * (canvas.height - 200),
-      img: new Image()
-    });
-    items[i].img.src = "https://cdn.pixabay.com/photo/2016/03/31/19/56/flower-1298259_1280.png"; // flor
+
+  for (let i=0;i<target;i++){
+    const img = document.createElement('img');
+    img.className = 'item';
+    // imagen estable de flor (Pixabay)
+    img.src = "https://cdn.pixabay.com/photo/2016/03/31/19/56/flower-1298259_1280.png";
+    img.alt = 'flor';
+    // posición aleatoria dentro del escenario, evitando zonas muy cerca al borde o al personaje inicial
+    const padX = 60;
+    const padY = 140;
+    const left = Math.random() * (window.innerWidth - padX*2) + padX;
+    const bottom = Math.random() * (window.innerHeight - padY*2) + padY;
+    // usaremos bottom positioning -> convertimos bottom desde porcentaje con style.bottom
+    img.style.left = left + 'px';
+    img.style.bottom = bottom + 'px';
+    stage.appendChild(img);
+    items.push(img);
   }
 }
 
-generateItems();
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  ctx.drawImage(elizabeth.img, elizabeth.x, elizabeth.y, elizabeth.width, elizabeth.height);
-
-  items.forEach(item => {
-    ctx.drawImage(item.img, item.x, item.y, 50, 50);
-  });
-
-  requestAnimationFrame(draw);
+// funciones de mensaje
+function showMessage(text, ms=1700) {
+  message.style.display = 'block';
+  message.textContent = text;
+  setTimeout(()=> message.style.display = 'none', ms);
 }
 
-function showMessage(msg, good = true) {
-  const el = document.getElementById('message');
-  el.textContent = msg;
-  document.getElementById(good ? 'goodSound' : 'badSound').play();
-  setTimeout(() => { el.textContent = ""; }, 2000);
+// mover función genérica
+function move(dx, dy) {
+  // current position as px
+  const curLeft = parseFloat(getComputedStyle(el).left || el.offsetLeft);
+  const curBottomPx = parseFloat(getComputedStyle(el).bottom || (window.innerHeight - el.offsetTop - el.clientHeight));
+  // compute new
+  let newLeft = curLeft + dx;
+  let newBottom = curBottomPx + dy;
+
+  // límites (no salir del escenario)
+  const maxLeft = window.innerWidth - el.clientWidth - 10;
+  const maxBottom = window.innerHeight - el.clientHeight - 10;
+
+  if (newLeft < 0) newLeft = 0;
+  if (newLeft > maxLeft) newLeft = maxLeft;
+  if (newBottom < 0) newBottom = 0;
+  if (newBottom > maxBottom) newBottom = maxBottom;
+
+  // aplicar (usamos left y bottom)
+  el.style.left = newLeft + 'px';
+  el.style.bottom = newBottom + 'px';
+
+  checkCollision();
 }
 
-function checkCollision() {
-  items.forEach((item, index) => {
-    if (elizabeth.x < item.x + 50 &&
-        elizabeth.x + elizabeth.width > item.x &&
-        elizabeth.y < item.y + 50 &&
-        elizabeth.y + elizabeth.height > item.y) {
-          items.splice(index, 1);
-          collected++;
-          showMessage("¡Excelente! 🌸", true);
-          if (collected >= totalItems) {
-            nextLevel();
-          }
+// comprobación de colisión entre el y cada item
+function checkCollision(){
+  const lizRect = el.getBoundingClientRect();
+  // recorremos copia porque quitaremos elementos
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    const itRect = it.getBoundingClientRect();
+    if (!(lizRect.right < itRect.left || lizRect.left > itRect.right ||
+          lizRect.bottom < itRect.top || lizRect.top > itRect.bottom)) {
+      // colisión
+      // eliminar item visual y de array
+      it.remove();
+      items.splice(i,1);
+      collected++;
+      if (audioEnabled) {
+        soundPickup.currentTime = 0;
+        soundPickup.play();
+      }
+      if (collected >= target) {
+        // completar nivel
+        if (audioEnabled) { soundWin.play(); }
+        showMessage('🎉 ¡Nivel completado! 🎉', 2200);
+        // eventualmente pasar a siguiente nivel — ahora reiniciamos ítems para seguir probando
+        setTimeout(()=> {
+          // para demo: reiniciar recolección (puedes cambiar por loadLevel siguiente)
+          collected = 0;
+          createItems();
+          showMessage('Nuevo reto: recoge las flores', 1800);
+        }, 2200);
+      } else {
+        showMessage('¡Flor recogida! 🌸 ('+collected+'/'+target+')', 1000);
+      }
     }
-  });
-}
-
-function nextLevel() {
-  level++;
-  collected = 0;
-  showMessage("¡Nivel " + level + " completado!", true);
-
-  if (level === 2) {
-    background.src = "https://cdn.pixabay.com/photo/2017/03/27/14/56/mountains-2178463_1280.jpg"; // montaña
-    elizabeth.img.src = "https://cdn.pixabay.com/photo/2017/04/03/09/59/adventure-2197046_1280.png"; // cambia ropa
-  } else if (level === 3) {
-    background.src = "https://cdn.pixabay.com/photo/2016/11/21/15/46/castle-1840058_1280.jpg";
-  } else if (level > 3) {
-    showMessage("🎉 ¡Aventura completada, Elízabeth llegó a casa! 🎵", true);
   }
-
-  generateItems();
 }
 
-document.getElementById('up').addEventListener('click', () => { elizabeth.y -= elizabeth.speed; checkCollision(); });
-document.getElementById('down').addEventListener('click', () => { elizabeth.y += elizabeth.speed; checkCollision(); });
-document.getElementById('left').addEventListener('click', () => { elizabeth.x -= elizabeth.speed; checkCollision(); });
-document.getElementById('right').addEventListener('click', () => { elizabeth.x += elizabeth.speed; checkCollision(); });
+// controles táctiles (botones)
+document.getElementById('left').addEventListener('touchstart', (e)=>{ e.preventDefault(); move(-moveStepX,0); });
+document.getElementById('right').addEventListener('touchstart', (e)=>{ e.preventDefault(); move(moveStepX,0); });
+document.getElementById('up').addEventListener('touchstart', (e)=>{ e.preventDefault(); move(0,moveStepY); });
+document.getElementById('down').addEventListener('touchstart', (e)=>{ e.preventDefault(); move(0,-moveStepY); });
 
-draw();
+// también clic (por si alguien prueba desde escritorio)
+["left","right","up","down"].forEach(id=>{
+  document.getElementById(id).addEventListener('click',(ev)=>{ ev.preventDefault(); 
+    if (id==='left') move(-moveStepX,0);
+    if (id==='right') move(moveStepX,0);
+    if (id==='up') move(0,moveStepY);
+    if (id==='down') move(0,-moveStepY);
+  });
+});
+
+// swipe para mover: detectamos arrastre rápido
+let touchStartX=0, touchStartY=0;
+stage.addEventListener('touchstart',(e)=> {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+});
+stage.addEventListener('touchend',(e)=> {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const absX = Math.abs(dx), absY = Math.abs(dy);
+  const threshold = 30; // mínimo para considerar swipe
+  if (absX < threshold && absY < threshold) return;
+  if (absX > absY) {
+    // horizontal swipe
+    if (dx > 0) move(moveStepX,0); else move(-moveStepX,0);
+  } else {
+    // vertical
+    if (dy > 0) move(0,-moveStepY); else move(0,moveStepY);
+  }
+});
+
+// Start button (desbloquea audio y crea items). Oculta overlay.
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  audioEnabled = true;
+  // tocar un sonido corto para "engranar" autoplay bloqueos en móviles
+  soundPickup.play().catch(()=>{/* ignore if blocked */});
+  overlay.style.display = 'none';
+  showMessage('Nivel 1: Recoge 5 flores 🌸', 2000);
+
+  // colocar personaje en una posición visible (en px)
+  el.style.left = (window.innerWidth * 0.10) + 'px';
+  el.style.bottom = Math.max(80, window.innerHeight * 0.12) + 'px';
+
+  createItems();
+});
+
+// para seguridad: cuando cambie tamaño de pantalla, adaptamos pasos de movimiento
+window.addEventListener('resize', ()=> {
+  moveStepX = Math.max(16, Math.round(window.innerWidth * 0.06));
+  moveStepY = Math.max(16, Math.round(window.innerHeight * 0.06));
+});
+
+// ocultar mensaje por defecto
+message.style.display = 'none';
+
+// Mostrar personaje cuando cargue (si no carga, usuario verá la imagen rota: en ese caso mándame captura)
+el.style.visibility = 'hidden';
+el.addEventListener('load', ()=> el.style.visibility = 'visible');
+
 </script>
 </body>
 </html>
