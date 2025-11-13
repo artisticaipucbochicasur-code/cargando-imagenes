@@ -3,188 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La Aventura de los Animalitos</title>
+<title>Aventura de Elízabeth la Exploradora</title>
 <style>
   body {
+    margin: 0;
+    background: linear-gradient(#87cefa, #d0f8ce);
+    overflow: hidden;
     font-family: Comic Sans MS, sans-serif;
-    text-align: center;
-    background-color: #fff3c4;
-    transition: background-color 1s;
+    user-select: none;
   }
-  h1 {
-    color: #ff6f00;
+
+  #juego {
+    position: relative;
+    width: 100vw;
+    height: 90vh;
+    overflow: hidden;
+    background: url("https://i.imgur.com/lR3XQKX.png") repeat-x;
+    background-size: cover;
   }
-  .animales {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 30px;
-    margin-top: 30px;
+
+  #personaje {
+    position: absolute;
+    bottom: 50px;
+    left: 100px;
+    width: 100px;
+    transition: all 0.2s;
   }
-  .animal {
-    font-size: 80px;
-    cursor: pointer;
-    transition: transform 0.3s;
+
+  #controles {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px;
+    gap: 5px;
+    justify-items: center;
   }
-  .animal:hover {
-    transform: scale(1.2);
-  }
-  .mensaje {
-    margin-top: 20px;
-    font-size: 30px;
-    font-weight: bold;
-    color: #00897b;
-    transition: opacity 0.5s;
-  }
-  #inicio, #siguienteNivel {
-    margin-top: 20px;
-    background-color: #ff6f00;
-    color: white;
-    padding: 10px 25px;
+
+  .btn {
+    width: 60px;
+    height: 60px;
+    background-color: #ffcc80;
     border: none;
     border-radius: 15px;
-    font-size: 22px;
+    font-size: 30px;
     cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
   }
-  #siguienteNivel {
-    display: none;
-  }
-  .nivel {
+
+  #arriba { grid-column: 2; grid-row: 1; }
+  #abajo { grid-column: 2; grid-row: 2; }
+  #izquierda { grid-column: 1; grid-row: 2; }
+  #derecha { grid-column: 3; grid-row: 2; }
+
+  #mensaje {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px 25px;
+    border-radius: 10px;
     font-size: 24px;
-    color: #4e342e;
-    margin-top: 10px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
   }
 </style>
 </head>
 <body>
-  <h1>🐾 ¡La Aventura de los Animalitos! 🐾</h1>
-  <div class="nivel" id="nivel">Nivel 1: La Granja 🐮</div>
-  <button id="inicio">Comenzar 🎵</button>
-  <button id="siguienteNivel">Siguiente Nivel ➡️</button>
-  <div class="animales" style="display:none;" id="zonaAnimales"></div>
-  <div class="mensaje" id="mensaje"></div>
 
-  <!-- Sonidos -->
-  <audio id="sound-ok" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-  <audio id="sound-error" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-  <audio id="sound-applause" src="https://actions.google.com/sounds/v1/crowds/applause.ogg"></audio>
-  <audio id="sound-level" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
+<div id="juego">
+  <div id="mensaje">🌈 ¡Ayuda a Elízabeth a explorar el bosque!</div>
+  <img id="personaje" src="https://i.imgur.com/ID6vQkY.png" alt="Elízabeth">
+</div>
+
+<div id="controles">
+  <button class="btn" id="arriba">⬆️</button>
+  <button class="btn" id="izquierda">⬅️</button>
+  <button class="btn" id="abajo">⬇️</button>
+  <button class="btn" id="derecha">➡️</button>
+</div>
+
+<!-- Sonidos -->
+<audio id="paso" src="https://actions.google.com/sounds/v1/foley/footsteps_single.ogg"></audio>
+<audio id="exito" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
 
 <script>
-const niveles = [
-  { nombre: "Nivel 1: La Granja 🐮", color: "#fff3c4", animales: [
-      {nombre:"perro", emoji:"🐶"},
-      {nombre:"vaca", emoji:"🐮"},
-      {nombre:"cerdo", emoji:"🐷"}
-    ]},
-  { nombre: "Nivel 2: El Bosque 🌳", color: "#d0f8ce", animales: [
-      {nombre:"oso", emoji:"🐻"},
-      {nombre:"búho", emoji:"🦉"},
-      {nombre:"zorro", emoji:"🦊"}
-    ]},
-  { nombre: "Nivel 3: El Mar 🌊", color: "#c3e8ff", animales: [
-      {nombre:"pez", emoji:"🐠"},
-      {nombre:"delfín", emoji:"🐬"},
-      {nombre:"tortuga", emoji:"🐢"}
-    ]},
-  { nombre: "Nivel 4: La Selva 🌴", color: "#d0ffcc", animales: [
-      {nombre:"león", emoji:"🦁"},
-      {nombre:"mono", emoji:"🐵"},
-      {nombre:"elefante", emoji:"🐘"}
-    ]}
-];
-
+const personaje = document.getElementById("personaje");
+const paso = document.getElementById("paso");
+const exito = document.getElementById("exito");
 const mensaje = document.getElementById("mensaje");
-const soundOk = document.getElementById("sound-ok");
-const soundError = document.getElementById("sound-error");
-const soundApplause = document.getElementById("sound-applause");
-const soundLevel = document.getElementById("sound-level");
-const botonInicio = document.getElementById("inicio");
-const botonNivel = document.getElementById("siguienteNivel");
-const zona = document.getElementById("zonaAnimales");
-const etiquetaNivel = document.getElementById("nivel");
-let sonidosHabilitados = false;
-let nivelActual = 0;
-let objetivo = "";
-let aciertos = 0;
+let posX = 100;
+let posY = 50;
 
-function cargarNivel() {
-  document.body.style.backgroundColor = niveles[nivelActual].color;
-  etiquetaNivel.textContent = niveles[nivelActual].nombre;
-  zona.innerHTML = "";
-  mensaje.textContent = "";
-  aciertos = 0;
-  botonNivel.style.display = "none";
-  
-  niveles[nivelActual].animales.forEach(animal => {
-    const div = document.createElement("div");
-    div.className = "animal";
-    div.dataset.nombre = animal.nombre;
-    div.textContent = animal.emoji;
-    zona.appendChild(div);
-  });
+// movimiento
+function mover(dx, dy) {
+  paso.currentTime = 0;
+  paso.play();
 
-  zona.style.display = "flex";
-  nuevoReto();
+  posX += dx;
+  posY += dy;
+
+  // límites del juego
+  posX = Math.max(0, Math.min(window.innerWidth - 100, posX));
+  posY = Math.max(0, Math.min(window.innerHeight - 200, posY));
+
+  personaje.style.left = posX + "px";
+  personaje.style.bottom = posY + "px";
+
+  // evento especial
+  if (posX > window.innerWidth - 150) {
+    mensaje.textContent = "🎉 ¡Elízabeth encontró un tesoro escondido!";
+    exito.play();
+    setTimeout(() => mensaje.textContent = "🌈 ¡Ayuda a Elízabeth a explorar el bosque!", 4000);
+  }
 }
 
-function nuevoReto() {
-  const lista = niveles[nivelActual].animales;
-  const aleatorio = lista[Math.floor(Math.random() * lista.length)];
-  objetivo = aleatorio.nombre;
-  mensaje.style.color = "#00897b";
-  mensaje.textContent = `Encuentra el ${objetivo}`;
-}
+// controles en pantalla
+document.getElementById("arriba").onclick = () => mover(0, 30);
+document.getElementById("abajo").onclick = () => mover(0, -30);
+document.getElementById("izquierda").onclick = () => mover(-30, 0);
+document.getElementById("derecha").onclick = () => mover(30, 0);
 
-botonInicio.addEventListener("click", () => {
-  sonidosHabilitados = true;
-  botonInicio.style.display = "none";
-  cargarNivel();
-});
-
-botonNivel.addEventListener("click", () => {
-  nivelActual++;
-  if (nivelActual < niveles.length) {
-    soundLevel.play();
-    cargarNivel();
-  } else {
-    mensaje.textContent = "🏆 ¡Completaste toda la aventura!";
-    mensaje.style.color = "purple";
-    zona.style.display = "none";
-    botonNivel.style.display = "none";
-    soundApplause.play();
-  }
-});
-
-zona.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("animal")) return;
-  if (!sonidosHabilitados) return;
-
-  const nombre = e.target.dataset.nombre;
-  if (nombre === objetivo) {
-    mensaje.textContent = "🎉 ¡Excelente!";
-    mensaje.style.color = "green";
-    soundOk.play();
-    aciertos++;
-
-    if (aciertos === niveles[nivelActual].animales.length) {
-      setTimeout(() => {
-        soundApplause.play();
-        mensaje.textContent = "⭐ ¡Nivel superado!";
-        mensaje.style.color = "orange";
-        botonNivel.style.display = "inline-block";
-      }, 1000);
-    } else {
-      setTimeout(nuevoReto, 1500);
-    }
-
-  } else {
-    mensaje.textContent = "❌ ¡Oh oh!";
-    mensaje.style.color = "red";
-    soundError.play();
-    setTimeout(() => { mensaje.textContent = `Encuentra el ${objetivo}`; }, 1000);
-  }
+// controles con teclado
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp") mover(0, 30);
+  if (e.key === "ArrowDown") mover(0, -30);
+  if (e.key === "ArrowLeft") mover(-30, 0);
+  if (e.key === "ArrowRight") mover(30, 0);
 });
 </script>
+
 </body>
 </html>
