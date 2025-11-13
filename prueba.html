@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
   body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
@@ -20,14 +19,12 @@
     color: white;
     overflow: hidden;
   }
-
   h1 {
     margin-top: 35px;
     font-size: 26px;
     letter-spacing: 1px;
     text-shadow: 0 2px 6px rgba(0,0,0,0.3);
   }
-
   #connectBtn {
     background: rgba(255,255,255,0.15);
     border: none;
@@ -44,115 +41,122 @@
     transition: 0.3s ease;
     margin: 20px 0;
   }
-
   #connectBtn.connected {
     background: rgba(0,255,140,0.3);
     box-shadow: 0 0 25px rgba(0,255,140,0.5);
   }
-
-  #connectBtn:active {
-    transform: scale(0.9);
-  }
-
+  #connectBtn:active { transform: scale(0.9); }
   .led-container {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 25px;
-    margin-top: 30px;
-    margin-bottom: 25px;
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 25px; margin-top: 30px; margin-bottom: 25px;
   }
-
   .switch {
-    width: 90px;
-    height: 90px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 50%;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    transition: 0.3s;
+    width: 90px; height: 90px; background: rgba(255,255,255,0.15);
+    border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; cursor: pointer; transition: 0.3s;
   }
-
-  .switch i {
-    font-size: 30px;
-    margin-bottom: 5px;
-  }
-
+  .switch i { font-size: 30px; margin-bottom: 5px; }
   .switch.on {
     background: rgba(0,255,100,0.4);
     box-shadow: 0 0 20px rgba(0,255,100,0.6);
   }
-
   #toggleAllBtn {
     background: rgba(255,255,255,0.15);
-    border: none;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 16px;
-    cursor: pointer;
+    border: none; color: white; padding: 12px 25px;
+    border-radius: 25px; font-size: 16px; cursor: pointer;
     backdrop-filter: blur(10px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transition: 0.3s;
-    margin-bottom: 25px;
+    transition: 0.3s; margin-bottom: 25px;
   }
-
-  #toggleAllBtn:hover {
-    background: rgba(255,255,255,0.25);
-  }
-
+  #toggleAllBtn:hover { background: rgba(255,255,255,0.25); }
   #toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 15px;
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.4s ease;
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.6); color: white;
+    padding: 12px 25px; border-radius: 25px; font-size: 15px;
+    opacity: 0; pointer-events: none; transition: 0.4s ease;
   }
+  #toast.show { opacity: 1; bottom: 40px; }
 
-  #toast.show {
-    opacity: 1;
-    bottom: 40px;
+  /* 🌐 Modal personalizado */
+  #deviceModal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+  }
+  #deviceModal.active { display: flex; }
+  .modal-content {
+    background: rgba(255,255,255,0.15);
+    border-radius: 15px;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  }
+  .modal-content h2 {
+    margin-top: 0;
+    color: #fff;
+  }
+  #deviceList {
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .device-item {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 8px 10px;
+    margin: 5px 0; background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+  }
+  .device-item button {
+    background: rgba(0,255,140,0.3);
+    border: none; color: white; padding: 5px 10px;
+    border-radius: 8px; cursor: pointer;
+  }
+  .modal-content button.close {
+    margin-top: 15px;
+    background: rgba(255,80,80,0.3);
+    border: none; color: white; padding: 8px 16px;
+    border-radius: 8px; cursor: pointer;
   }
 </style>
 </head>
 <body>
 
-  <h1><i class="fa-solid fa-lightbulb"></i> Control Luces ESP32</h1>
+<h1><i class="fa-solid fa-lightbulb"></i> Control Luces ESP32</h1>
 
-  <button id="connectBtn" onclick="toggleBluetooth()">
-    <i class="fa-brands fa-bluetooth-b"></i>
-  </button>
+<button id="connectBtn" onclick="openDeviceModal()">
+  <i class="fa-brands fa-bluetooth-b"></i>
+</button>
 
-  <div class="led-container">
-    <div id="led1" class="switch" onclick="toggleLed(1)">
-      <i class="fa-regular fa-lightbulb"></i>
-      <span>LED 1</span>
-    </div>
-    <div id="led2" class="switch" onclick="toggleLed(2)">
-      <i class="fa-regular fa-lightbulb"></i>
-      <span>LED 2</span>
-    </div>
-    <div id="led3" class="switch" onclick="toggleLed(3)">
-      <i class="fa-regular fa-lightbulb"></i>
-      <span>LED 3</span>
-    </div>
+<div class="led-container">
+  <div id="led1" class="switch" onclick="toggleLed(1)">
+    <i class="fa-regular fa-lightbulb"></i>
+    <span>LED 1</span>
   </div>
+  <div id="led2" class="switch" onclick="toggleLed(2)">
+    <i class="fa-regular fa-lightbulb"></i>
+    <span>LED 2</span>
+  </div>
+  <div id="led3" class="switch" onclick="toggleLed(3)">
+    <i class="fa-regular fa-lightbulb"></i>
+    <span>LED 3</span>
+  </div>
+</div>
 
-  <button id="toggleAllBtn" onclick="toggleAll()">💡 Encender todas</button>
+<button id="toggleAllBtn" onclick="toggleAll()">💡 Encender todas</button>
 
-  <div id="toast"></div>
+<div id="toast"></div>
+
+<!-- 🌐 Modal de selección de dispositivo -->
+<div id="deviceModal">
+  <div class="modal-content">
+    <h2>Seleccionar dispositivo</h2>
+    <button onclick="scanDevices()">🔍 Buscar dispositivos</button>
+    <div id="deviceList"></div>
+    <button class="close" onclick="closeDeviceModal()">Cancelar</button>
+  </div>
+</div>
 
 <script>
 let device, server, service, characteristic;
@@ -165,33 +169,52 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-async function toggleBluetooth() {
-  const btn = document.getElementById("connectBtn");
-  if (btn.classList.contains("connected")) {
-    if (device && device.gatt.connected) {
-      device.gatt.disconnect();
-      btn.classList.remove("connected");
-      showToast("🔌 Desconectado del ESP32");
-    }
-    return;
-  }
+// --- Modal control ---
+function openDeviceModal() { document.getElementById("deviceModal").classList.add("active"); }
+function closeDeviceModal() { document.getElementById("deviceModal").classList.remove("active"); }
+
+// --- Escaneo y conexión personalizada ---
+async function scanDevices() {
+  const list = document.getElementById("deviceList");
+  list.innerHTML = "<p>🔍 Buscando...</p>";
 
   try {
-    device = await navigator.bluetooth.requestDevice({
+    const deviceChosen = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
     });
-    server = await device.gatt.connect();
-    service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
-    characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
 
-    btn.classList.add("connected");
-    showToast("✅ Conectado a " + device.name);
+    await connectToDevice(deviceChosen);
+    closeDeviceModal();
+
   } catch (error) {
-    showToast("❌ Error: " + error);
+    showToast("❌ Error: " + error.message);
   }
 }
 
+async function connectToDevice(dev) {
+  const btn = document.getElementById("connectBtn");
+  try {
+    server = await dev.gatt.connect();
+    service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
+    characteristic = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
+    device = dev;
+
+    btn.classList.add("connected");
+    showToast("✅ Conectado a " + device.name);
+
+    // manejar desconexión
+    device.addEventListener("gattserverdisconnected", () => {
+      btn.classList.remove("connected");
+      showToast("🔌 Desconectado");
+    });
+
+  } catch (error) {
+    showToast("⚠️ Error al conectar: " + error.message);
+  }
+}
+
+// --- Envío y control LEDs ---
 async function sendCommand(cmd) {
   if (!characteristic) {
     showToast("⚠️ Conéctate primero al ESP32");
@@ -200,13 +223,12 @@ async function sendCommand(cmd) {
   try {
     const data = new TextEncoder().encode(cmd);
     await characteristic.writeValue(data);
-  } catch (error) {
+  } catch {
     showToast("❌ Error al enviar comando");
   }
 }
 
 function toggleLed(num) {
-  // 🔹 Si no está conectado, no hacer cambios visuales
   if (!characteristic || !device || !device.gatt.connected) {
     showToast("⚠️ No conectado al ESP32");
     return;
@@ -226,25 +248,13 @@ function toggleLed(num) {
 }
 
 async function toggleAll() {
-  // 🔹 Si no está conectado, no hacer cambios visuales
   if (!characteristic || !device || !device.gatt.connected) {
     showToast("⚠️ No conectado al ESP32");
     return;
   }
 
   const allOnNow = Object.values(leds).every(v => v);
-  const allOffNow = Object.values(leds).every(v => !v);
-
   const turnOn = !allOnNow;
-
-  if (turnOn && allOnNow) {
-    showToast("💡 Las luces ya están encendidas");
-    return;
-  }
-  if (!turnOn && allOffNow) {
-    showToast("💤 Las luces ya están apagadas");
-    return;
-  }
 
   for (let i = 1; i <= 3; i++) {
     leds[i] = turnOn;
